@@ -1,0 +1,23 @@
+{
+  "event": "call.ended",
+  "timestamp": 1702742400,
+  "token": "test-webhook-token",
+  "data": {
+    "id": 12345,
+    "direct_link": "https://dashboard.aircall.io/calls/12345",
+    "status": "done",
+    "direction": "inbound",
+    "started_at": 1702742300,
+    "answered_at": 1702742305,
+    "ended_at": 1702742400,
+    "duration": 95,
+    "from": "+34612345678",
+    "to": "+34987654321",
+    "user": {
+      "id": 1,
+      "name": "Juan Pérez",
+      "email": "juan@example.com"
+    },
+    "recording": "https://api.aircall.io/recordings/abc123.mp3"
+  }
+}
