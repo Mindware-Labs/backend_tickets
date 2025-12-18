@@ -7,6 +7,11 @@ import { WebHookEventModule } from './web-hook-event/web-hook-event.module';
 import { typeOrmConfig } from './config/typeorm.config';
 import { CallModule } from './call/call.module';
 import { AircallModule } from './webhooks/aircall/aircall.module';
+import { CustomersModule } from './customers/customers.module';
+import { AuthModule } from './auth/auth.module';
+import { DepartmentModule } from './department/department.module';
+import { TicketTagModule } from './ticket-tag/ticket-tag.module';
+import { TicketModule } from './ticket/ticket.module';
 
 @Module({
   imports: [
@@ -20,6 +25,11 @@ import { AircallModule } from './webhooks/aircall/aircall.module';
     WebHookEventModule,
     CallModule,
     AircallModule,
+    CustomersModule,
+    AuthModule,
+    DepartmentModule,
+    TicketTagModule,
+    TicketModule,
   ],
   controllers: [AppController],
   providers: [AppService],

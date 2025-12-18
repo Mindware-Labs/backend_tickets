@@ -35,4 +35,7 @@ export class WebhookEvent {
 
   @CreateDateColumn()
   receivedAt: Date;
+
+  @Column({ type: 'timestamp', nullable: true })
+  processedAt?: Date;
 }

@@ -3,6 +3,14 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { WebhookEvent } from '../../web-hook-event/entities/web-hook-event.entity';
 import { Call } from '../../call/entities/call.entity';
+import {
+  Ticket,
+  ContactSource,
+  ManagementType,
+  TicketPriority,
+} from '../../ticket/entities/ticket.entity';
+import { Customer } from '../../customers/entities/customer.entity';
+import { CustomersService } from '../../customers/customers.service';
 import { AircallWebhookDto, AircallCallData } from './dto/aircall-webhook.dto';
 
 @Injectable()
@@ -14,6 +22,11 @@ export class AircallService {
     private readonly webhookEventRepo: Repository<WebhookEvent>,
     @InjectRepository(Call)
     private readonly callRepo: Repository<Call>,
+    @InjectRepository(Ticket)
+    private readonly ticketRepo: Repository<Ticket>,
+    @InjectRepository(Customer)
+    private readonly customerRepo: Repository<Customer>,
+    private readonly customersService: CustomersService,
   ) {}
 
   /**
@@ -124,12 +137,72 @@ export class AircallService {
       this.logger.log(
         `Call ${providerCallId} ${isNewCall ? 'created' : 'updated'} successfully`,
       );
+
+      if (isNewCall) {
+        await this.createTicketFromCall(call, data);
+      }
     } catch (error) {
       this.logger.error(
         `Failed to save call ${providerCallId}: ${error.message}`,
         error.stack,
       );
       throw error;
+    }
+  }
+
+  private async createTicketFromCall(
+    call: Call,
+    data: AircallCallData,
+  ): Promise<void> {
+    try {
+      this.logger.log(`Creating ticket for call ${call.providerCallId}`);
+
+      const phoneNumber =
+        call.direction === 'INBOUND' ? call.fromNumber : call.toNumber;
+      let customer = await this.customerRepo.findOne({
+        where: { phone: phoneNumber },
+      });
+
+      if (!customer) {
+        this.logger.log(`Creating new customer for phone: ${phoneNumber}`);
+        customer = this.customerRepo.create({
+          name: 'Cliente',
+          lastName: phoneNumber,
+          phone: phoneNumber,
+          email: `${phoneNumber}@temp.com`,
+        });
+        await this.customerRepo.save(customer);
+      }
+
+      const count = await this.ticketRepo.count();
+      const ticketNumber = `#${(count + 1).toString().padStart(4, '0')}`;
+
+      const source =
+        call.direction === 'INBOUND'
+          ? ContactSource.AIRCALL_INBOUND
+          : ContactSource.AIRCALL_OUTBOUND;
+
+      const ticket = this.ticketRepo.create({
+        ticketNumber,
+        managementType: ManagementType.AR,
+        subject: `Llamada ${call.direction === 'INBOUND' ? 'entrante' : 'saliente'} - ${phoneNumber}`,
+        issueDetail: `Llamada ${call.outcome} con duración de ${call.durationSec || 0} segundos`,
+        source,
+        contactChannel: `Aircall - ${call.agentName || 'Sin agente'}`,
+        customerId: customer.id,
+        createdByUserId: 1,
+        priority: TicketPriority.MEDIUM,
+      });
+
+      await this.ticketRepo.save(ticket);
+      this.logger.log(
+        `Ticket ${ticketNumber} created successfully for call ${call.providerCallId}`,
+      );
+    } catch (error) {
+      this.logger.error(
+        `Failed to create ticket for call ${call.providerCallId}: ${error.message}`,
+        error.stack,
+      );
     }
   }
 
