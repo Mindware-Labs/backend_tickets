@@ -8,10 +8,11 @@ import {
   JoinColumn,
   ManyToMany,
   JoinTable,
+  OneToOne,
 } from 'typeorm';
 import { User } from '../../auth/entities/user.entity';
 import { Customer } from '../../customers/entities/customer.entity';
-import { TicketTag } from '../../ticket-tag/entities/ticket-tag.entity';
+import { Agent } from '../../agents/entities/agent.entity';
 
 export enum ManagementType {
   ONBOARDING = 'ONBOARDING',
@@ -29,6 +30,22 @@ export enum TicketPriority {
   LOW = 'LOW',
   MEDIUM = 'MEDIUM',
   HIGH = 'HIGH',
+  EMERGENCY = 'EMERGENCY',
+}
+
+export enum CallDirection {
+  INBOUND = 'INBOUND',
+  OUTBOUND = 'OUTBOUND',
+}
+
+export enum TicketDisposition {
+  BOOKING = 'BOOKING',
+  GENERAL_INFO = 'GENERAL_INFO',
+  COMPLAINT = 'COMPLAINT',
+  SUPPORT = 'SUPPORT',
+  BILLING = 'BILLING',
+  TECHNICAL_ISSUE = 'TECHNICAL_ISSUE',
+  OTHER = 'OTHER',
 }
 
 export enum ContactSource {
@@ -40,62 +57,17 @@ export enum ContactSource {
   AIRCALL_OUTBOUND = 'AIRCALL_OUTBOUND',
 }
 
+export enum OnboardingOption {
+  NOT_REGISTER = 'NOT_REGISTER',
+  REGISTER = 'REGISTER',
+  PAID_WITH_LL = 'PAID_WITH_LL',
+  CANCELLED = 'CANCELLED',
+}
+
 @Entity('tickets')
 export class Ticket {
   @PrimaryGeneratedColumn()
   id: number;
-
-  @Column({ unique: true })
-  ticketNumber: string;
-
-  @Column({
-    type: 'enum',
-    enum: ManagementType,
-  })
-  managementType: ManagementType;
-
-  @Column()
-  subject: string;
-
-  @Column({ type: 'text' })
-  issueDetail: string;
-
-  @Column({
-    type: 'enum',
-    enum: TicketStatus,
-    default: TicketStatus.OPEN,
-  })
-  status: TicketStatus;
-
-  @Column({
-    type: 'enum',
-    enum: TicketPriority,
-    default: TicketPriority.MEDIUM,
-  })
-  priority: TicketPriority;
-
-  @Column({
-    type: 'enum',
-    enum: ContactSource,
-  })
-  source: ContactSource;
-
-  @Column({ nullable: true })
-  contactChannel?: string;
-
-  @ManyToOne(() => User, { nullable: true })
-  @JoinColumn({ name: 'assignedToUserId' })
-  assignedTo?: User;
-
-  @Column({ nullable: true })
-  assignedToUserId?: number;
-
-  @ManyToOne(() => User)
-  @JoinColumn({ name: 'createdByUserId' })
-  createdBy: User;
-
-  @Column()
-  createdByUserId: number;
 
   @ManyToOne(() => Customer)
   @JoinColumn({ name: 'customerId' })
@@ -104,26 +76,85 @@ export class Ticket {
   @Column()
   customerId: number;
 
-  @ManyToMany(() => TicketTag, (tag) => tag.tickets)
-  @JoinTable({
-    name: 'ticket_tags_relation',
-    joinColumn: { name: 'ticketId', referencedColumnName: 'id' },
-    inverseJoinColumn: { name: 'tagId', referencedColumnName: 'id' },
+  // Yarda (Manual por el agente)
+  @Column({ nullable: true, comment: 'Yarda - Manual por el agente' })
+  yarda?: string;
+
+  @Column({ nullable: true })
+  customerPhone?: string;
+
+  // Disposition (Manual por el agente)
+  @Column({
+    type: 'enum',
+    enum: TicketDisposition,
+    nullable: true,
   })
-  tags: TicketTag[];
+  disposition?: TicketDisposition;
+
+  // Direction (si es recibida o llamada)
+  @Column({
+    type: 'enum',
+    enum: CallDirection,
+  })
+  direction: CallDirection;
+
+  // Campaign (ONBOARDING o AR)
+  @Column({
+    type: 'enum',
+    enum: ManagementType,
+    nullable: true,
+  })
+  campaign?: ManagementType;
+
+  @ManyToOne(() => Agent, { nullable: true })
+  @JoinColumn({ name: 'agentId' })
+  assignedTo?: Agent;
 
   @Column({ nullable: true })
-  resolvedAt?: Date;
+  agentId?: number;
+
+  @Column({
+    type: 'enum',
+    enum: TicketStatus,
+    default: TicketStatus.IN_PROGRESS,
+  })
+  status: TicketStatus;
+
+  @Column({
+    type: 'enum',
+    enum: TicketPriority,
+    default: TicketPriority.LOW,
+  })
+  priority: TicketPriority;
 
   @Column({ nullable: true })
-  closedAt?: Date;
+  aircallId?: string;
 
-  @Column({ nullable: true })
-  firstResponseAt?: Date;
+  @Column({ nullable: true, comment: 'Duración de la llamada en segundos' })
+  duration?: number;
 
-  @Column({ nullable: true })
-  dueDate?: Date;
+  // Issue detail (Manual por el agente)
+  @Column({ type: 'text', nullable: true, comment: 'Manual por el agente' })
+  issueDetail?: string;
 
+  // Attachment (Manual por el agente)
+  @Column({
+    type: 'simple-json',
+    nullable: true,
+    comment: 'Manual por el agente',
+  })
+  attachments?: string[];
+
+  // Onboarding Option (solo cuando campaign es ONBOARDING)
+  @Column({
+    type: 'enum',
+    enum: OnboardingOption,
+    nullable: true,
+    comment: 'Solo aplica cuando campaign es ONBOARDING. Manual por el agente.',
+  })
+  onboardingOption?: OnboardingOption;
+
+  // Fecha creado
   @CreateDateColumn()
   createdAt: Date;
 

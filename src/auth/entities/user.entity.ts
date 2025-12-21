@@ -6,11 +6,11 @@ import {
   UpdateDateColumn,
   BeforeInsert,
   BeforeUpdate,
-  ManyToOne,
-  JoinColumn,
 } from 'typeorm';
 import * as bcrypt from 'bcrypt';
-import { Department } from '../../department/entities/department.entity';
+
+import { UserRole } from './user-role.enum';
+import { Ticket } from '../../ticket/entities/ticket.entity';
 
 @Entity('users')
 export class User {
@@ -29,6 +29,13 @@ export class User {
   @Column({ nullable: true })
   phone?: string;
 
+  @Column({
+    type: 'enum',
+    enum: UserRole,
+    default: UserRole.ADMIN,
+  })
+  role: UserRole;
+
   @Column()
   password: string;
 
@@ -40,12 +47,6 @@ export class User {
 
   @Column({ nullable: true })
   lastLoginAt?: Date;
-
-  @ManyToOne(() => Department, (department) => department.users, {
-    nullable: true,
-  })
-  @JoinColumn({ name: 'departmentId' })
-  department?: Department;
 
   @Column({ nullable: true })
   departmentId?: number;

@@ -1,7 +1,7 @@
 # Script de prueba para webhooks de Aircall
 # Ejecuta: .\test-webhook.ps1
 
-$baseUrl = "http://localhost:3000"
+$baseUrl = "http://localhost:3001"
 
 Write-Host "Probando Webhook de Aircall..." -ForegroundColor Cyan
 Write-Host ""
@@ -12,7 +12,7 @@ Write-Host "Test 1: Llamada contestada y finalizada" -ForegroundColor Yellow
 $body = @{
     event     = "call.ended"
     timestamp = 1702742400
-    token     = "test-webhook-token"
+    token     = "sebatianeunmamagranaso12345"
     data      = @{
         id          = 12345
         direct_link = "https://dashboard.aircall.io/calls/12345"

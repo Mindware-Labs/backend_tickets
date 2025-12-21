@@ -1,54 +1,57 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, In } from 'typeorm';
+import { Repository } from 'typeorm';
 import { CreateTicketDto } from './dto/create-ticket.dto';
 import { UpdateTicketDto } from './dto/update-ticket.dto';
 import { Ticket } from './entities/ticket.entity';
-import { TicketTag } from '../ticket-tag/entities/ticket-tag.entity';
 
 @Injectable()
 export class TicketService {
   constructor(
     @InjectRepository(Ticket)
     private readonly ticketRepository: Repository<Ticket>,
-    @InjectRepository(TicketTag)
-    private readonly ticketTagRepository: Repository<TicketTag>,
   ) {}
 
   async create(createTicketDto: CreateTicketDto, createdByUserId: number) {
-    const { tagIds, ...ticketData } = createTicketDto;
+    const ticketData = createTicketDto;
 
     const count = await this.ticketRepository.count();
     const ticketNumber = `#${(count + 1).toString().padStart(4, '0')}`;
 
-    const ticket = this.ticketRepository.create({
+    const ticketDataWithNumber = {
       ...ticketData,
       ticketNumber,
-      createdByUserId,
-    });
+    };
 
-    // Asignar tags si hay
-    if (tagIds && tagIds.length > 0) {
-      const tags = await this.ticketTagRepository.find({
-        where: { id: In(tagIds) },
-      });
-      ticket.tags = tags;
-    }
+    const ticket = this.ticketRepository.create(ticketDataWithNumber);
+    const savedTicket = await this.ticketRepository.save(ticket);
 
-    return this.ticketRepository.save(ticket);
+    return savedTicket;
   }
 
-  findAll() {
-    return this.ticketRepository.find({
-      relations: ['assignedTo', 'createdBy', 'customer', 'tags'],
+  async findAll(page: number = 1, limit: number = 10) {
+    const skip = (page - 1) * limit;
+
+    const [tickets, total] = await this.ticketRepository.findAndCount({
+      relations: ['assignedTo', 'customer'],
       order: { createdAt: 'DESC' },
+      skip,
+      take: limit,
     });
+
+    return {
+      data: tickets,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    };
   }
 
   async findOne(id: number) {
     const ticket = await this.ticketRepository.findOne({
       where: { id },
-      relations: ['assignedTo', 'createdBy', 'customer', 'tags'],
+      relations: ['assignedTo', 'customer'],
     });
     if (!ticket) {
       throw new NotFoundException(`Ticket with id ${id} not found`);
@@ -56,24 +59,15 @@ export class TicketService {
     return ticket;
   }
 
-  async update(id: number, updateTicketDto: UpdateTicketDto) {
-    const { tagIds, ...ticketData } = updateTicketDto;
+  async update(id: number, updateTicketDto: UpdateTicketDto, userId?: number) {
+    const ticketData = updateTicketDto;
     const ticket = await this.findOne(id);
+    const oldTicket = { ...ticket };
 
     Object.assign(ticket, ticketData);
+    const updatedTicket = await this.ticketRepository.save(ticket);
 
-    if (tagIds !== undefined) {
-      if (tagIds.length > 0) {
-        const tags = await this.ticketTagRepository.find({
-          where: { id: In(tagIds) },
-        });
-        ticket.tags = tags;
-      } else {
-        ticket.tags = [];
-      }
-    }
-
-    return this.ticketRepository.save(ticket);
+    return updatedTicket;
   }
 
   async remove(id: number) {

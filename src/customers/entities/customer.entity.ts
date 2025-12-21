@@ -11,29 +11,17 @@ export class Customer {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ type: 'varchar', length: 100 })
-  name: string;
+  @Column({ nullable: true })
+  name?: string;
 
-  @Column({ type: 'varchar', length: 100 })
-  lastName: string;
+  @Column({ nullable: true, unique: true })
+  phone?: string;
 
-  @Column({ type: 'varchar', length: 15 })
-  phone: string;
-
-  @Column({ type: 'varchar', length: 100 })
-  email: string;
-
-  @Column({ type: 'varchar', length: 200, nullable: true })
-  company?: string;
-
-  @Column({ type: 'varchar', length: 200, nullable: true })
-  yardName?: string;
-
-  @Column({ type: 'text', nullable: true })
-  address?: string;
-
-  @Column({ type: 'varchar', length: 100, nullable: true })
-  externalId?: string;
+  @Column({
+    default: false,
+    comment: 'Indica si el cliente es de la línea de Onboarding',
+  })
+  isOnBoarding: boolean;
 
   @CreateDateColumn()
   createdAt: Date;

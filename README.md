@@ -21,9 +21,46 @@
   <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
   [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
 
-## Description
+## Descripción del Proyecto
 
-Sistema de gestión de tickets con integración de webhooks de Aircall para tracking de llamadas.
+**Tickets API** es un sistema backend robusto para la gestión integral de tickets de soporte y atención al cliente, desarrollado con NestJS y TypeScript. El proyecto proporciona una solución completa para administrar interacciones con clientes, campañas de marketing y seguimiento de llamadas.
+
+### Características Principales
+
+- **🎫 Gestión de Tickets**: Sistema completo CRUD para crear, actualizar y rastrear tickets de soporte con diferentes tipos de gestión (Onboarding, AR), prioridades y estados.
+
+- **👥 Administración de Clientes**: Módulo dedicado para gestionar información de clientes incluyendo datos de contacto, empresas asociadas y patios (yards).
+
+- **📊 Campañas**: Sistema de gestión de campañas con soporte para diferentes tipos (Onboarding, AR, Other), seguimiento de duración y estado activo/inactivo.
+
+- **🔐 Autenticación y Seguridad**: Sistema completo de autenticación con JWT incluyendo:
+  - Registro y login de usuarios
+  - Recuperación de contraseña con tokens
+  - Protección de rutas con guards
+  - Roles de usuario
+
+- **📞 Integración con Aircall**: Webhook listener para capturar y procesar eventos de llamadas entrantes y salientes desde Aircall, permitiendo tracking automático de interacciones telefónicas.
+
+- **📚 Documentación API con Swagger**: Documentación interactiva completa de todos los endpoints disponible en `/api`, facilitando la integración y pruebas.
+
+### Tecnologías Utilizadas
+
+- **Framework**: NestJS 11.x
+- **Lenguaje**: TypeScript
+- **Base de Datos**: PostgreSQL con TypeORM
+- **Autenticación**: JWT con Passport
+- **Validación**: Class Validator & Class Transformer
+- **Documentación**: Swagger/OpenAPI
+- **Seguridad**: Bcrypt para encriptación de contraseñas
+
+### Endpoints Disponibles
+
+- **Auth**: `/auth` - Registro, login, recuperación de contraseña
+- **Tickets**: `/ticket` - CRUD completo de tickets
+- **Clientes**: `/customers` - Gestión de clientes
+- **Campañas**: `/campaign` - Administración de campañas
+- **Webhooks**: `/webhooks/aircall` - Receptor de eventos Aircall
+- **Documentación**: `/api` - Swagger UI
 
 ## Configuración Inicial
 

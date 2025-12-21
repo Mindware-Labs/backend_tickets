@@ -28,11 +28,22 @@ export interface AircallCallData {
   };
   contact?: {
     id: number;
-    firstname?: string;
-    lastname?: string;
+    first_name?: string;
+    last_name?: string;
+    company_name?: string;
+    information?: string;
+    is_shared?: boolean;
+    created_at?: number;
+    updated_at?: number;
     phone_numbers?: Array<{
       id: number;
       value: string;
+      label?: string;
+    }>;
+    emails?: Array<{
+      id?: number;
+      value: string;
+      label?: string;
     }>;
   };
   number?: {
