@@ -1,6 +1,6 @@
 import { PartialType } from '@nestjs/mapped-types';
 import { CreateCustomerDto } from './create-customer.dto';
-import { IsEmail, IsNotEmpty, IsString } from 'class-validator';
+import { IsEmail, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 import { Transform } from 'class-transformer';
 
 export class UpdateCustomerDto extends PartialType(CreateCustomerDto) {
@@ -17,6 +17,7 @@ export class UpdateCustomerDto extends PartialType(CreateCustomerDto) {
   @IsNotEmpty()
   phone: string;
 
-  @IsEmail()
-  email: string;
+  @IsOptional()
+  @IsString()
+  isOnBoarding: boolean;
 }
