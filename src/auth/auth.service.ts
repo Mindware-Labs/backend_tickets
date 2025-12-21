@@ -29,7 +29,7 @@ export class AuthService {
       where: { email },
     });
     if (existingUser) {
-      throw new ConflictException('El email ya está registrado');
+      throw new ConflictException('Email already in use');
     }
 
     const user = this.userRepository.create({
@@ -45,7 +45,7 @@ export class AuthService {
     const accessToken = this.jwtService.sign(payload);
 
     return {
-      message: 'Usuario registrado exitosamente',
+      message: 'User registered successfully',
       accessToken,
       user: {
         id: user.id,
@@ -61,19 +61,19 @@ export class AuthService {
 
     const user = await this.userRepository.findOne({ where: { email } });
     if (!user) {
-      throw new UnauthorizedException('Credenciales inválidas');
+      throw new UnauthorizedException('Invalid credentials');
     }
 
     const isPasswordValid = await user.validatePassword(password);
     if (!isPasswordValid) {
-      throw new UnauthorizedException('Credenciales inválidas');
+      throw new UnauthorizedException('Invalid credentials');
     }
 
     const payload = { sub: user.id, email: user.email };
     const accessToken = this.jwtService.sign(payload);
 
     return {
-      message: 'Inicio de sesión exitoso',
+      message: 'Login successful',
       accessToken,
       user: {
         id: user.id,
@@ -91,7 +91,7 @@ export class AuthService {
     if (!user) {
       return {
         message:
-          'Si el email existe, recibirás un enlace para restablecer tu contraseña',
+          'If the email exists, you will receive a link to reset your password',
       };
     }
 
@@ -106,7 +106,7 @@ export class AuthService {
 
     return {
       message:
-        'Si el email existe, recibirás un enlace para restablecer tu contraseña',
+        'If the email exists, you will receive a link to reset your password',
       resetToken:
         process.env.NODE_ENV === 'development' ? resetToken : undefined,
     };
@@ -120,7 +120,7 @@ export class AuthService {
     });
 
     if (!user || !user.resetTokenExpiry || user.resetTokenExpiry < new Date()) {
-      throw new BadRequestException('Token inválido o expirado');
+      throw new BadRequestException('Invalid or expired token');
     }
 
     user.password = newPassword;
@@ -129,14 +129,14 @@ export class AuthService {
     await this.userRepository.save(user);
 
     return {
-      message: 'Contraseña restablecida exitosamente',
+      message: 'Password reset successfully',
     };
   }
 
   async validateUser(userId: number) {
     const user = await this.userRepository.findOne({ where: { id: userId } });
     if (!user) {
-      throw new UnauthorizedException('Usuario no encontrado');
+      throw new UnauthorizedException('User not found');
     }
 
     return {

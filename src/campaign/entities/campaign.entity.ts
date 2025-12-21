@@ -23,8 +23,8 @@ export class Campaign {
   @Column({ nullable: true })
   yarda?: string;
 
-  @Column({ nullable: true, comment: 'Duración en minutos' })
-  duracion?: number;
+  @Column({ nullable: true })
+  duracion?: string;
 
   @Column({
     type: 'enum',

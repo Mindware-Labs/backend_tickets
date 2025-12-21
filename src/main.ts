@@ -6,7 +6,6 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  // ✅ Habilitar CORS para permitir webhooks de Aircall
   app.enableCors({
     origin: '*', // En producción, especifica los dominios permitidos
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',

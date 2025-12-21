@@ -31,8 +31,8 @@ export class CreateCampaignDto {
     required: false,
   })
   @IsOptional()
-  @IsNumber()
-  duracion?: number;
+  @IsString()
+  duracion?: string;
 
   @ApiProperty({
     description: 'Tipo de campaña',

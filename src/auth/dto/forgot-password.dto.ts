@@ -7,8 +7,8 @@ export class ForgotPasswordDto {
     description: 'Email del usuario para recuperar contraseña',
     example: 'juan.perez@example.com',
   })
-  @IsNotEmpty({ message: 'El email es requerido' })
-  @IsEmail({}, { message: 'Debe ser un email válido' })
+  @IsNotEmpty({ message: 'Email is required' })
+  @IsEmail({}, { message: 'Must be a valid email' })
   @Transform(({ value }) =>
     typeof value === 'string' ? value.trim().toLowerCase() : value,
   )

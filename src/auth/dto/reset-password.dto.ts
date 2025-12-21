@@ -11,12 +11,11 @@ export class ResetPasswordDto {
   token: string;
 
   @ApiProperty({
-    description: 'Nueva contraseña (mínimo 6 caracteres)',
-    example: 'newPassword123',
+    description: 'New password (minimum 6 characters)',
     minLength: 6,
   })
-  @IsNotEmpty({ message: 'La nueva contraseña es requerida' })
+  @IsNotEmpty({ message: 'New password is required' })
   @IsString()
-  @MinLength(6, { message: 'La contraseña debe tener al menos 6 caracteres' })
+  @MinLength(6, { message: 'Password must be at least 6 characters long' })
   newPassword: string;
 }
