@@ -12,6 +12,7 @@ import { AuthModule } from './auth/auth.module';
 import { TicketModule } from './ticket/ticket.module';
 import { CampaignModule } from './campaign/campaign.module';
 import { YardsModule } from './yards/yards.module';
+import { KnowledgeModule } from './knowledge/knowledge.module';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { YardsModule } from './yards/yards.module';
     TicketModule,
     CampaignModule,
     YardsModule,
+    KnowledgeModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -13,6 +13,7 @@ import {
 import { User } from '../../auth/entities/user.entity';
 import { Customer } from '../../customers/entities/customer.entity';
 import { Agent } from '../../agents/entities/agent.entity';
+import { Yard } from 'src/yards/entities/yard.entity';
 
 export enum ManagementType {
   ONBOARDING = 'ONBOARDING',
@@ -76,9 +77,11 @@ export class Ticket {
   @Column()
   customerId: number;
 
-  // Yarda (Manual por el agente)
-  @Column({ nullable: true, comment: 'Yarda - Manual por el agente' })
-  yarda?: string;
+  @ManyToOne(() => Yard, (yard) => yard.id, { eager: true })
+  yard: Yard;
+
+  @Column()
+  yardId: number;
 
   @Column({ nullable: true })
   customerPhone?: string;

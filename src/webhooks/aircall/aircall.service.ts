@@ -199,7 +199,7 @@ export class AircallService {
         customerId: customer.id,
         customerPhone: phoneNumber,
 
-        yarda: undefined,
+        yard: undefined,
 
         disposition: undefined,
 

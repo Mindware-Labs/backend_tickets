@@ -23,7 +23,7 @@ async function bootstrap() {
   const config = new DocumentBuilder()
     .setTitle('Tickets API')
     .setDescription(
-      'API para gestión de tickets, clientes, campañas y webhooks',
+      'API para gestión de tickets, clientes, campañas, webhooks, yards y conocimiento',
     )
     .setVersion('1.0')
     .addBearerAuth()
@@ -31,6 +31,8 @@ async function bootstrap() {
     .addTag('tickets', 'Gestión de tickets')
     .addTag('customers', 'Gestión de clientes')
     .addTag('campaigns', 'Gestión de campañas')
+    .addTag('yards', 'Gestión de yards (patios de contenedores)')
+    .addTag('knowledge', 'Gestión de base de conocimiento')
     .addTag('webhooks', 'Webhooks de integración')
     .build();
   const document = SwaggerModule.createDocument(app, config);
