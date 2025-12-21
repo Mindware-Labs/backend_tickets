@@ -1,6 +1,7 @@
 import { Transform } from 'class-transformer';
-import { IsNotEmpty, IsString } from 'class-validator';
+import { IsEnum, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
+import { YardType } from '../entities/yard.entity';
 
 export class CreateYardDto {
   @ApiProperty({
@@ -47,4 +48,25 @@ export class CreateYardDto {
   @IsString({ message: 'Invalid Yard Link format' })
   @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
   yardLink: string;
+
+  @ApiProperty({
+    description: 'Notas adicionales sobre el yard',
+    example: 'Este yard opera 24/7.',
+    required: false,
+  })
+  @IsOptional()
+  @IsString({ message: 'Invalid Notes format' })
+  @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
+  notes: string;
+
+  @ApiProperty({
+    description: 'Tipo de yard',
+    example: 'SAAS',
+    enum: YardType,
+  })
+  @IsNotEmpty({ message: 'Yard Type should not be empty' })
+  @IsEnum(YardType, {
+    message: 'Yard Type must be either SAAS or FULL_SERVICE',
+  })
+  yardType: YardType;
 }

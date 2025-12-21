@@ -13,6 +13,7 @@ import { TicketModule } from './ticket/ticket.module';
 import { CampaignModule } from './campaign/campaign.module';
 import { YardsModule } from './yards/yards.module';
 import { KnowledgeModule } from './knowledge/knowledge.module';
+import { PoliciesModule } from './policies/policies.module';
 
 @Module({
   imports: [
@@ -32,6 +33,7 @@ import { KnowledgeModule } from './knowledge/knowledge.module';
     CampaignModule,
     YardsModule,
     KnowledgeModule,
+    PoliciesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

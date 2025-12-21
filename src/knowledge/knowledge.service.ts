@@ -13,11 +13,26 @@ export class KnowledgeService {
   ) {}
 
   create(createKnowledgeDto: CreateKnowledgeDto) {
-    return this.knowledgeRepository.save(createKnowledgeDto);
+    const knowledge = this.knowledgeRepository.create(createKnowledgeDto);
+    return this.knowledgeRepository.save(knowledge);
   }
 
-  findAll() {
-    return this.knowledgeRepository.find();
+  async findAll(page: number = 1, limit: number = 10) {
+    const skip = (page - 1) * limit;
+
+    const [data, total] = await this.knowledgeRepository.findAndCount({
+      skip,
+      take: limit,
+      order: { date: 'DESC' },
+    });
+
+    return {
+      data,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    };
   }
 
   async findOne(id: number) {

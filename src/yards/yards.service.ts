@@ -13,7 +13,8 @@ export class YardsService {
   ) {}
 
   create(createYardDto: CreateYardDto) {
-    return this.yardRepository.save(createYardDto);
+    const yard = this.yardRepository.create(createYardDto);
+    return this.yardRepository.save(yard);
   }
 
   findAll() {
