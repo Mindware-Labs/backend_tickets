@@ -22,7 +22,7 @@ import { JwtAuthGuard } from './guards/jwt-auth.guard';
 @ApiTags('auth')
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(private readonly authService: AuthService) { }
 
   @Post('register')
   @ApiOperation({ summary: 'Registrar nuevo usuario' })
@@ -42,8 +42,7 @@ export class AuthController {
 
   @Post('forgot-password')
   @ApiOperation({
-    summary:
-      'Solicitar recuperación de contraseña (No Implementado completamente) ',
+    summary: 'Solicitar recuperación de contraseña',
   })
   @ApiResponse({ status: 200, description: 'Email de recuperación enviado' })
   @ApiResponse({ status: 404, description: 'Usuario no encontrado' })
@@ -53,7 +52,7 @@ export class AuthController {
 
   @Post('reset-password')
   @ApiOperation({
-    summary: 'Restablecer contraseña (No Implementado completamente)',
+    summary: 'Restablecer contraseña',
   })
   @ApiResponse({
     status: 200,

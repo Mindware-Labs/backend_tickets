@@ -13,6 +13,7 @@ import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
+import { EmailService } from '../email/email.service';
 
 @Injectable()
 export class AuthService {
@@ -20,7 +21,8 @@ export class AuthService {
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
     private readonly jwtService: JwtService,
-  ) {}
+    private readonly emailService: EmailService,
+  ) { }
 
   async register(registerDto: RegisterDto) {
     const { email, name, lastName, password } = registerDto;
@@ -102,7 +104,10 @@ export class AuthService {
     user.resetTokenExpiry = resetTokenExpiry;
     await this.userRepository.save(user);
 
-    console.log(`Token de reset para ${email}: ${resetToken}`);
+    await this.userRepository.save(user);
+
+    // Enviar email
+    await this.emailService.sendPasswordResetEmail(user.email, resetToken);
 
     return {
       message:
