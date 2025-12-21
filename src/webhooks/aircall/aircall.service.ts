@@ -127,6 +127,27 @@ export class AircallService {
 
       const phoneNumber = direction === 'INBOUND' ? fromNumber : inboundNumber;
 
+      // Determinar si esta llamada ACTUAL es de onboarding basado en el número que recibió la llamada
+      const ONBOARDING_NUMBERS = [
+        '+17864537888',
+        '+1 786-453-7888',
+        '17864537888',
+      ];
+      const isCurrentCallOnboarding =
+        (data.number?.digits &&
+          ONBOARDING_NUMBERS.includes(data.number.digits)) ||
+        ONBOARDING_NUMBERS.some(
+          (num) =>
+            inboundNumber?.replace(/[^\d+]/g, '') ===
+              num.replace(/[^\d+]/g, '') ||
+            data.number?.digits?.replace(/[^\d+]/g, '') ===
+              num.replace(/[^\d+]/g, ''),
+        );
+
+      this.logger.log(
+        `Inbound number: ${inboundNumber}, Current call is onboarding: ${isCurrentCallOnboarding}`,
+      );
+
       let customer = await this.customerRepo.findOne({
         where: { phone: phoneNumber },
       });
@@ -141,30 +162,10 @@ export class AircallService {
             ? `${firstName} ${lastName}`.trim()
             : firstName || lastName || phoneNumber;
 
-        const ONBOARDING_NUMBERS = [
-          '+17864537888',
-          '+1 786-453-7888',
-          '17864537888',
-        ];
-        const isOnBoardingLine =
-          (data.number?.digits &&
-            ONBOARDING_NUMBERS.includes(data.number.digits)) ||
-          ONBOARDING_NUMBERS.some(
-            (num) =>
-              inboundNumber?.replace(/[^\d+]/g, '') ===
-                num.replace(/[^\d+]/g, '') ||
-              data.number?.digits?.replace(/[^\d+]/g, '') ===
-                num.replace(/[^\d+]/g, ''),
-          );
-
-        this.logger.log(
-          `Customer phone: ${phoneNumber}, isOnBoarding: ${isOnBoardingLine}`,
-        );
-
         customer = this.customerRepo.create({
           name: fullName,
           phone: phoneNumber,
-          isOnBoarding: isOnBoardingLine,
+          isOnBoarding: isCurrentCallOnboarding,
         });
         await this.customerRepo.save(customer);
       }
@@ -191,7 +192,8 @@ export class AircallService {
       const count = await this.ticketRepo.count();
       const ticketNumber = `#${(count + 1).toString().padStart(4, '0')}`;
 
-      const campaignValue = customer.isOnBoarding
+      // Usar la llamada ACTUAL para determinar la campaña, no el historial del cliente
+      const campaignValue = isCurrentCallOnboarding
         ? ManagementType.ONBOARDING
         : undefined;
 
@@ -226,7 +228,7 @@ export class AircallService {
 
       await this.ticketRepo.save(ticket);
       this.logger.log(
-        `Ticket ${ticketNumber} created successfully from Aircall webhook ${data.id} (campaign: ${campaignValue}, isOnBoarding: ${customer.isOnBoarding})`,
+        `Ticket ${ticketNumber} created successfully from Aircall webhook ${data.id} (campaign: ${campaignValue}, isCurrentCallOnboarding: ${isCurrentCallOnboarding})`,
       );
     } catch (error) {
       this.logger.error(
