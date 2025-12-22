@@ -64,7 +64,7 @@ export class TicketController {
   @ApiParam({ name: 'id', type: Number, description: 'ID del ticket' })
   @ApiResponse({ status: 200, description: 'Ticket encontrado' })
   @ApiResponse({ status: 404, description: 'Ticket no encontrado' })
-  findOne(@Param('id') id: string) {
+  findOne(@Param('id', IdValidationPipe) id: string) {
     return this.ticketService.findOne(+id);
   }
 
@@ -76,10 +76,8 @@ export class TicketController {
   update(
     @Param('id', IdValidationPipe) id: string,
     @Body() updateTicketDto: UpdateTicketDto,
-    @Request() req,
   ) {
-    const userId = req.user?.id;
-    return this.ticketService.update(+id, updateTicketDto, userId);
+    return this.ticketService.update(+id, updateTicketDto);
   }
 
   @Delete(':id')
@@ -87,7 +85,7 @@ export class TicketController {
   @ApiParam({ name: 'id', type: Number, description: 'ID del ticket' })
   @ApiResponse({ status: 200, description: 'Ticket eliminado' })
   @ApiResponse({ status: 404, description: 'Ticket no encontrado' })
-  remove(@Param('id') id: string) {
+  remove(@Param('id', IdValidationPipe) id: string) {
     return this.ticketService.remove(+id);
   }
 }

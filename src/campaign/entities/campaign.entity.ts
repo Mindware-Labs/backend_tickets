@@ -1,9 +1,11 @@
+import { Yard } from '../../yards/entities/yard.entity';
 import {
   Column,
   Entity,
   PrimaryGeneratedColumn,
   CreateDateColumn,
   UpdateDateColumn,
+  ManyToOne,
 } from 'typeorm';
 
 export enum CampaignType {
@@ -21,7 +23,10 @@ export class Campaign {
   nombre: string;
 
   @Column({ nullable: true })
-  yarda?: string;
+  yardaId: number;
+
+  @ManyToOne(() => Yard, (yarda) => yarda.campaigns)
+  yarda: Yard;
 
   @Column({ nullable: true })
   duracion?: string;

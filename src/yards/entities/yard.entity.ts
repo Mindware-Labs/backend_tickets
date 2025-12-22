@@ -1,4 +1,6 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Ticket } from 'src/ticket/entities/ticket.entity';
+import { Campaign } from '../../campaign/entities/campaign.entity';
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 
 export enum YardType {
   SAAS = 'SAAS',
@@ -36,4 +38,10 @@ export class Yard {
 
   @Column({ default: true })
   isActive: boolean;
+
+  @OneToMany(() => Campaign, (campaign) => campaign.yarda)
+  campaigns: Campaign[];
+
+  @OneToMany(() => Ticket, (ticket) => ticket.yard)
+  tickets: Ticket[];
 }

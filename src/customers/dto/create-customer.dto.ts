@@ -1,40 +1,34 @@
 import { Transform } from 'class-transformer';
-import {
-  IsEmail,
-  IsNotEmpty,
-  IsOptional,
-  IsPhoneNumber,
-  IsString,
-} from 'class-validator';
+import { IsBoolean, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class CreateCustomerDto {
   @ApiProperty({
-    description: 'Nombre del cliente',
-    example: 'Juan',
-  })
-  @IsNotEmpty()
-  @IsString()
-  @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
-  name: string;
-
-  @ApiProperty({
-    description: 'Apellido del cliente',
-    example: 'Pérez',
-  })
-  @ApiProperty({
-    description: 'Teléfono del cliente',
-    example: '+1234567890',
-  })
-  @IsNotEmpty()
-  phone: string;
-
-  @ApiProperty({
-    description:
-      'Indica si el cliente ha completado el proceso de incorporación',
-    example: 'Register',
+    description: 'Nombre del cliente (opcional)',
+    example: 'Juan Pérez',
+    required: false,
   })
   @IsOptional()
   @IsString()
-  isOnBoarding: boolean;
+  @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
+  name?: string;
+
+  @ApiProperty({
+    description: 'Teléfono del cliente (opcional, único)',
+    example: '+1234567890',
+    required: false,
+  })
+  @IsOptional()
+  @IsString()
+  phone?: string;
+
+  @ApiProperty({
+    description: 'Indica si el cliente es de la línea de Onboarding',
+    example: false,
+    required: false,
+    default: false,
+  })
+  @IsOptional()
+  @IsBoolean()
+  isOnBoarding?: boolean;
 }

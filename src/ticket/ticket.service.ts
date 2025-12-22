@@ -4,16 +4,43 @@ import { Repository } from 'typeorm';
 import { CreateTicketDto } from './dto/create-ticket.dto';
 import { UpdateTicketDto } from './dto/update-ticket.dto';
 import { Ticket } from './entities/ticket.entity';
+import { Yard } from '../yards/entities/yard.entity';
+import { Customer } from '../customers/entities/customer.entity';
 
 @Injectable()
 export class TicketService {
   constructor(
     @InjectRepository(Ticket)
     private readonly ticketRepository: Repository<Ticket>,
-  ) { }
+
+    @InjectRepository(Yard)
+    private readonly yardRepository: Repository<Yard>,
+
+    @InjectRepository(Customer)
+    private readonly customerRepository: Repository<Customer>,
+  ) {}
 
   async create(createTicketDto: CreateTicketDto, createdByUserId: number) {
     const ticketData = createTicketDto;
+    const yard = await this.yardRepository.findOneBy({
+      id: createTicketDto.yardId,
+    });
+
+    if (!yard) {
+      throw new NotFoundException(
+        `Yard with ID ${createTicketDto.yardId} not found`,
+      );
+    }
+
+    const customer = await this.customerRepository.findOneBy({
+      id: createTicketDto.customerId,
+    });
+
+    if (!customer) {
+      throw new NotFoundException(
+        `Customer with ID ${createTicketDto.customerId} not found`,
+      );
+    }
 
     const count = await this.ticketRepository.count();
     const ticketNumber = `#${(count + 1).toString().padStart(4, '0')}`;
@@ -59,10 +86,36 @@ export class TicketService {
     return ticket;
   }
 
-  async update(id: number, updateTicketDto: UpdateTicketDto, userId?: number) {
+  async update(id: number, updateTicketDto: UpdateTicketDto) {
     const ticketData = updateTicketDto;
     const ticket = await this.findOne(id);
-    const oldTicket = { ...ticket };
+
+    if (!ticket) {
+      throw new NotFoundException(`Ticket with id ${id} not found`);
+    }
+
+    const yard = await this.yardRepository.findOneBy({
+      id: updateTicketDto.yardId,
+    });
+
+    if (!yard) {
+      throw new NotFoundException(
+        `Yard with ID ${updateTicketDto.yardId} not found`,
+      );
+    }
+
+    const customer = await this.customerRepository.findOneBy({
+      id: updateTicketDto.customerId,
+    });
+
+    if (!customer) {
+      throw new NotFoundException(
+        `Customer with ID ${updateTicketDto.customerId} not found`,
+      );
+    }
+
+    ticket.customer = customer;
+    ticket.yard = yard;
 
     Object.assign(ticket, ticketData);
     await this.ticketRepository.save(ticket);

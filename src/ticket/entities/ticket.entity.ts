@@ -77,11 +77,14 @@ export class Ticket {
   @Column()
   customerId: number;
 
-  @ManyToOne(() => Yard, (yard) => yard.id, { eager: true, nullable: true })
-  yard?: Yard;
-
   @Column({ nullable: true })
   yardId?: number;
+
+  @ManyToOne(() => Yard, (yard) => yard.tickets, {
+    eager: true,
+    nullable: true,
+  })
+  yard?: Yard;
 
   @Column({ nullable: true })
   customerPhone?: string;

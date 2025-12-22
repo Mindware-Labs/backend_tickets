@@ -4,26 +4,31 @@ import {
   IsOptional,
   IsNumber,
   IsBoolean,
+  IsNotEmpty,
+  Min,
 } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 import { CampaignType } from '../entities/campaign.entity';
+import { Transform } from 'class-transformer';
 
 export class CreateCampaignDto {
   @ApiProperty({
     description: 'Nombre de la campaña',
     example: 'Campaña de Verano 2024',
   })
-  @IsString()
+  @IsNotEmpty({ message: 'Name should not be empty' })
+  @IsString({ message: 'Name must be a string' })
+  @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
   nombre: string;
 
   @ApiProperty({
     description: 'Nombre del patio asociado (opcional)',
-    example: 'Patio Norte',
+    example: '1',
     required: false,
   })
-  @IsOptional()
-  @IsString()
-  yarda?: string;
+  @IsNumber({}, { message: 'yardaId must be a number' })
+  @Min(1, { message: 'yardaId must be a positive number' })
+  yardaId?: number;
 
   @ApiProperty({
     description: 'Duración de la campaña en días (opcional)',
@@ -40,6 +45,8 @@ export class CreateCampaignDto {
     example: CampaignType.ONBOARDING,
   })
   @IsEnum(CampaignType)
+  @IsNotEmpty({ message: 'tipo should not be empty' })
+  @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
   tipo: CampaignType;
 
   @ApiProperty({
