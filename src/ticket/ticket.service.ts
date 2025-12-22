@@ -18,7 +18,7 @@ export class TicketService {
 
     @InjectRepository(Customer)
     private readonly customerRepository: Repository<Customer>,
-  ) {}
+  ) { }
 
   async create(createTicketDto: CreateTicketDto, createdByUserId: number) {
     const ticketData = createTicketDto;
@@ -94,28 +94,31 @@ export class TicketService {
       throw new NotFoundException(`Ticket with id ${id} not found`);
     }
 
-    const yard = await this.yardRepository.findOneBy({
-      id: updateTicketDto.yardId,
-    });
+    if (updateTicketDto.yardId) {
+      const yard = await this.yardRepository.findOneBy({
+        id: updateTicketDto.yardId,
+      });
 
-    if (!yard) {
-      throw new NotFoundException(
-        `Yard with ID ${updateTicketDto.yardId} not found`,
-      );
+      if (!yard) {
+        throw new NotFoundException(
+          `Yard with ID ${updateTicketDto.yardId} not found`,
+        );
+      }
+      ticket.yard = yard;
     }
 
-    const customer = await this.customerRepository.findOneBy({
-      id: updateTicketDto.customerId,
-    });
+    if (updateTicketDto.customerId) {
+      const customer = await this.customerRepository.findOneBy({
+        id: updateTicketDto.customerId,
+      });
 
-    if (!customer) {
-      throw new NotFoundException(
-        `Customer with ID ${updateTicketDto.customerId} not found`,
-      );
+      if (!customer) {
+        throw new NotFoundException(
+          `Customer with ID ${updateTicketDto.customerId} not found`,
+        );
+      }
+      ticket.customer = customer;
     }
-
-    ticket.customer = customer;
-    ticket.yard = yard;
 
     Object.assign(ticket, ticketData);
     await this.ticketRepository.save(ticket);

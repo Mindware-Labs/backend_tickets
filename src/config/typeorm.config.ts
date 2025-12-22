@@ -13,8 +13,9 @@ export const typeOrmConfig = (
   password: configService.get('DATABASE_PASS'),
   database: configService.get('DATABASE_NAME'), */
   logging: false,
-  //ssl: true,
-  //entities: [join(__dirname + '../../**/*.entity.{js,ts}')],
+  ssl: {
+    rejectUnauthorized: false, // For Neon/Render usually needed
+  },
   autoLoadEntities: true,
   synchronize: true,
 });
