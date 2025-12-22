@@ -24,7 +24,7 @@ export class Yard {
   @Column({ type: 'varchar', length: 100 })
   contactInfo: string;
 
-  @Column({ type: 'varchar', length: 200 })
+  @Column({ type: 'varchar', length: 200, nullable: true })
   yardLink: string;
 
   @Column({ type: 'text', nullable: true })

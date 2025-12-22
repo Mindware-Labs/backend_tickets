@@ -43,8 +43,9 @@ export class CreateYardDto {
   @ApiProperty({
     description: 'Enlace al yard',
     example: 'https://example.com/yard/123',
+    required: false,
   })
-  @IsNotEmpty({ message: 'Yard Link should not be empty' })
+  @IsOptional()
   @IsString({ message: 'Invalid Yard Link format' })
   @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
   yardLink: string;
