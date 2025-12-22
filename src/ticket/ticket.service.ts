@@ -10,7 +10,7 @@ export class TicketService {
   constructor(
     @InjectRepository(Ticket)
     private readonly ticketRepository: Repository<Ticket>,
-  ) {}
+  ) { }
 
   async create(createTicketDto: CreateTicketDto, createdByUserId: number) {
     const ticketData = createTicketDto;
@@ -33,7 +33,7 @@ export class TicketService {
     const skip = (page - 1) * limit;
 
     const [tickets, total] = await this.ticketRepository.findAndCount({
-      relations: ['assignedTo', 'customer'],
+      relations: ['assignedTo', 'customer', 'yard'],
       order: { createdAt: 'DESC' },
       skip,
       take: limit,
@@ -51,7 +51,7 @@ export class TicketService {
   async findOne(id: number) {
     const ticket = await this.ticketRepository.findOne({
       where: { id },
-      relations: ['assignedTo', 'customer'],
+      relations: ['assignedTo', 'customer', 'yard'],
     });
     if (!ticket) {
       throw new NotFoundException(`Ticket with id ${id} not found`);
@@ -65,9 +65,9 @@ export class TicketService {
     const oldTicket = { ...ticket };
 
     Object.assign(ticket, ticketData);
-    const updatedTicket = await this.ticketRepository.save(ticket);
+    await this.ticketRepository.save(ticket);
 
-    return updatedTicket;
+    return this.findOne(id);
   }
 
   async remove(id: number) {

@@ -46,4 +46,8 @@ export class UpdateTicketDto {
   @IsOptional()
   @IsNumber()
   agentId?: number;
+
+  @IsOptional()
+  @IsNumber()
+  yardId?: number;
 }
