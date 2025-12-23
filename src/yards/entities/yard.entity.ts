@@ -36,7 +36,7 @@ export class Yard {
   })
   yardType: YardType;
 
-  @Column({ default: true })
+  @Column()
   isActive: boolean;
 
   @OneToMany(() => Campaign, (campaign) => campaign.yarda)

@@ -70,4 +70,11 @@ export class CreateYardDto {
     message: 'Yard Type must be either SAAS or FULL_SERVICE',
   })
   yardType: YardType;
+
+  @ApiProperty({
+    description: 'Indica si el yard está activo',
+    example: true,
+  })
+  @IsNotEmpty({ message: 'isActive should not be empty' })
+  isActive: boolean;
 }
