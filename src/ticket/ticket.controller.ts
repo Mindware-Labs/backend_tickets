@@ -24,7 +24,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { IdValidationPipe } from '../common/id-validation.pipe';
 
 @ApiTags('tickets')
-@Controller('ticket')
+@Controller('tickets')
 export class TicketController {
   constructor(private readonly ticketService: TicketService) {}
 
