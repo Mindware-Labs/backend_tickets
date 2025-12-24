@@ -18,6 +18,7 @@ import { Yard } from 'src/yards/entities/yard.entity';
 export enum ManagementType {
   ONBOARDING = 'ONBOARDING',
   AR = 'AR',
+  OTHER = 'OTHER',
 }
 
 export enum TicketStatus {
@@ -46,7 +47,6 @@ export enum TicketDisposition {
   SUPPORT = 'SUPPORT',
   BILLING = 'BILLING',
   TECHNICAL_ISSUE = 'TECHNICAL_ISSUE',
-  OTHER = 'OTHER',
 }
 
 export enum ContactSource {
@@ -104,7 +104,7 @@ export class Ticket {
   })
   direction: CallDirection;
 
-  // Campaign (ONBOARDING o AR)
+  // Campaign
   @Column({
     type: 'enum',
     enum: ManagementType,

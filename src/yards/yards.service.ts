@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateYardDto } from './dto/create-yard.dto';
 import { UpdateYardDto } from './dto/update-yard.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -37,7 +41,18 @@ export class YardsService {
   }
 
   async remove(id: number) {
-    const yard = await this.findOne(id);
+    const yard = await this.yardRepository.findOne({
+      where: { id },
+      relations: ['tickets'],
+    });
+    if (!yard) {
+      throw new NotFoundException(`Yard with ID ${id} not found`);
+    }
+    if (yard.tickets && yard.tickets.length > 0) {
+      throw new ConflictException(
+        `Cannot delete yard because it has associated tickets.`,
+      );
+    }
     await this.yardRepository.remove(yard);
     return { message: `Yard with ID ${id} has been removed` };
   }
