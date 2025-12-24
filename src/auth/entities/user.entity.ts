@@ -57,6 +57,15 @@ export class User {
   @Column({ nullable: true })
   resetTokenExpiry?: Date;
 
+  @Column({ default: false })
+  emailVerified: boolean;
+
+  @Column({ nullable: true })
+  verificationToken?: string;
+
+  @Column({ nullable: true })
+  verificationTokenExpiry?: Date;
+
   @CreateDateColumn()
   createdAt: Date;
 

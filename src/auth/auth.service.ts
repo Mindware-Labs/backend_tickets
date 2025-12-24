@@ -34,27 +34,46 @@ export class AuthService {
       throw new ConflictException('Email already in use');
     }
 
+    // Generate verification token
+    const verificationToken = crypto.randomBytes(32).toString('hex');
+    const verificationTokenExpiry = new Date(Date.now() + 24 * 3600000); // 24 hours
+
     const user = this.userRepository.create({
       name,
       lastName,
       email,
       password,
+      emailVerified: false,
+      verificationToken,
+      verificationTokenExpiry,
     });
 
     await this.userRepository.save(user);
 
-    const payload = { sub: user.id, email: user.email };
-    const accessToken = this.jwtService.sign(payload);
+    // Send verification email (don't fail registration if email fails)
+    try {
+      await this.emailService.sendAccountVerificationEmail(
+        user.email,
+        verificationToken,
+        `${user.name} ${user.lastName}`,
+      );
+    } catch (emailError) {
+      // Log error but don't fail registration
+      console.error('Failed to send verification email:', emailError);
+      // In development, return the token so user can verify manually
+      if (process.env.NODE_ENV === 'development') {
+        return {
+          message: 'User registered successfully. Email verification failed, but you can verify manually using the token below.',
+          email: user.email,
+          verificationToken: verificationToken, // Only in development
+          verificationLink: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/verify-email?token=${verificationToken}`,
+        };
+      }
+    }
 
     return {
-      message: 'User registered successfully',
-      accessToken,
-      user: {
-        id: user.id,
-        name: user.name,
-        lastName: user.lastName,
-        email: user.email,
-      },
+      message: 'User registered successfully. Please check your email to verify your account.',
+      email: user.email,
     };
   }
 
@@ -69,6 +88,11 @@ export class AuthService {
     const isPasswordValid = await user.validatePassword(password);
     if (!isPasswordValid) {
       throw new UnauthorizedException('Invalid credentials');
+    }
+
+    // Check if email is verified
+    if (!user.emailVerified) {
+      throw new UnauthorizedException('Please verify your email before logging in. Check your inbox for the verification link.');
     }
 
     const payload = { sub: user.id, email: user.email };
@@ -149,6 +173,25 @@ export class AuthService {
       name: user.name,
       lastName: user.lastName,
       email: user.email,
+    };
+  }
+
+  async verifyEmail(token: string) {
+    const user = await this.userRepository.findOne({
+      where: { verificationToken: token },
+    });
+
+    if (!user || !user.verificationTokenExpiry || user.verificationTokenExpiry < new Date()) {
+      throw new BadRequestException('Invalid or expired verification token');
+    }
+
+    user.emailVerified = true;
+    user.verificationToken = undefined;
+    user.verificationTokenExpiry = undefined;
+    await this.userRepository.save(user);
+
+    return {
+      message: 'Email verified successfully. You can now login.',
     };
   }
 }

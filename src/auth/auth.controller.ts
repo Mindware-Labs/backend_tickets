@@ -63,6 +63,14 @@ export class AuthController {
     return this.authService.resetPassword(resetPasswordDto);
   }
 
+  @Post('verify-email')
+  @ApiOperation({ summary: 'Verificar email de usuario' })
+  @ApiResponse({ status: 200, description: 'Email verificado exitosamente' })
+  @ApiResponse({ status: 400, description: 'Token inválido o expirado' })
+  verifyEmail(@Body() verifyEmailDto: any) {
+    return this.authService.verifyEmail(verifyEmailDto.token);
+  }
+
   @UseGuards(JwtAuthGuard)
   @Get('profile')
   @ApiBearerAuth()

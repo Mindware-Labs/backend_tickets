@@ -34,7 +34,7 @@ export class EmailService {
             this.configService.get<string>('EMAIL_FROM') ||
             '"Sistema de Tickets" <noreply@tickets.com>';
         this.frontendUrl =
-            this.configService.get<string>('FRONTEND_URL') || 'http://localhost:3002';
+            this.configService.get<string>('FRONTEND_URL') || 'http://localhost:3000';
 
         if (!host || !user || !pass) {
             this.logger.warn(
