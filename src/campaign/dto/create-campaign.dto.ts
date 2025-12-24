@@ -26,6 +26,7 @@ export class CreateCampaignDto {
     example: '1',
     required: false,
   })
+  @IsOptional()
   @IsNumber({}, { message: 'yardaId must be a number' })
   @Min(1, { message: 'yardaId must be a positive number' })
   yardaId?: number;

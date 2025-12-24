@@ -18,6 +18,22 @@ import { AircallWebhookDto, AircallCallData } from './dto/aircall-webhook.dto';
 @Injectable()
 export class AircallService {
   private readonly logger = new Logger(AircallService.name);
+  private readonly allowedLineNumbers = new Set([
+    '17864537888', // Rig Hut – Onboard and Support
+    '13143967179', // Drop Yard STL
+    '17864716281', // Griffin Truck Parking
+    '12512835404', // Gulf Coast Truck Storage
+    '17622275486', // I-85 Truck Parking
+    '15615568710', // Mr. Parker – Hollywood
+    '15614897958', // Mr. Parker – Riviera Beach
+    '19013506669', // National Truck Parking
+    '19042659233', // Parking Kingdom Jackson
+    '13054130294', // Rig Hut - Main Office Number
+    '18558601514', // Rig Hut - Toll Free Number
+  ]);
+  private readonly onboardingLineNumbers = new Set([
+    '17864537888', // Rig Hut – Onboard and Support
+  ]);
 
   constructor(
     @InjectRepository(WebhookEvent)
@@ -127,22 +143,24 @@ export class AircallService {
 
       const phoneNumber = direction === 'INBOUND' ? fromNumber : inboundNumber;
 
-      // Determinar si esta llamada ACTUAL es de onboarding basado en el número que recibió la llamada
-      const ONBOARDING_NUMBERS = [
-        '+17864537888',
-        '+1 786-453-7888',
-        '17864537888',
-      ];
-      const isCurrentCallOnboarding =
-        (data.number?.digits &&
-          ONBOARDING_NUMBERS.includes(data.number.digits)) ||
-        ONBOARDING_NUMBERS.some(
-          (num) =>
-            inboundNumber?.replace(/[^\d+]/g, '') ===
-              num.replace(/[^\d+]/g, '') ||
-            data.number?.digits?.replace(/[^\d+]/g, '') ===
-              num.replace(/[^\d+]/g, ''),
+      const normalizePhone = (value?: string) =>
+        value ? value.replace(/[^\d]/g, '') : '';
+      const lineCandidates = [data.number?.digits, inboundNumber, data.to].map(
+        normalizePhone,
+      );
+      const matchedLine = lineCandidates.find((value) =>
+        this.allowedLineNumbers.has(value),
+      );
+
+      if (!matchedLine) {
+        this.logger.warn(
+          `Skipping ticket creation for Aircall ${data.id}: line not allowed (${lineCandidates.filter(Boolean).join(', ') || 'unknown'})`,
         );
+        return;
+      }
+
+      const isCurrentCallOnboarding =
+        matchedLine && this.onboardingLineNumbers.has(matchedLine);
 
       this.logger.log(
         `Inbound number: ${inboundNumber}, Current call is onboarding: ${isCurrentCallOnboarding}`,
@@ -165,7 +183,7 @@ export class AircallService {
         customer = this.customerRepo.create({
           name: fullName,
           phone: phoneNumber,
-          isOnBoarding: isCurrentCallOnboarding,
+          isOnBoarding: !!isCurrentCallOnboarding,
         });
         await this.customerRepo.save(customer);
       }
@@ -192,7 +210,6 @@ export class AircallService {
       const count = await this.ticketRepo.count();
       const ticketNumber = `#${(count + 1).toString().padStart(4, '0')}`;
 
-      // Usar la llamada ACTUAL para determinar la campaña, no el historial del cliente
       const campaignValue = isCurrentCallOnboarding
         ? ManagementType.ONBOARDING
         : undefined;
