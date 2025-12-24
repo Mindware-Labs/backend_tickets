@@ -208,15 +208,18 @@ export const accountVerificationTemplate = (
   userName: string,
 ) => {
   const content = `
-    <h2>Verifica tu Cuenta ✉️</h2>
+    <h2>Verificación de Cuenta</h2>
     
     <p>Hola <strong>${userName}</strong>,</p>
     
-    <p>Gracias por registrarte en nuestro Sistema de Tickets. Para completar tu registro, por favor verifica tu correo electrónico.</p>
+    <p>Gracias por registrarte en nuestro Sistema de Tickets. Para completar tu registro y activar tu cuenta, por favor verifica tu correo electrónico haciendo clic en el botón de abajo.</p>
     
     <div class="info-box">
       <p><strong>⏰ Este enlace expirará en 24 horas</strong></p>
+      <p>Por razones de seguridad, este enlace solo puede ser usado una vez.</p>
     </div>
+    
+    <p>Para verificar tu cuenta, haz clic en el siguiente botón:</p>
     
     <div style="text-align: center;">
       <a href="${verificationLink}" class="button">Verificar Correo Electrónico</a>
@@ -232,7 +235,10 @@ export const accountVerificationTemplate = (
     <div class="divider"></div>
     
     <p style="font-size: 14px; color: #6c757d;">
-      Si no creaste una cuenta, puedes ignorar este correo de forma segura.
+      <strong>Consejos de seguridad:</strong><br>
+      • No compartas este enlace con nadie<br>
+      • Si no creaste una cuenta, puedes ignorar este correo de forma segura<br>
+      • Una vez verificado, podrás iniciar sesión en el sistema
     </p>
   `;
 

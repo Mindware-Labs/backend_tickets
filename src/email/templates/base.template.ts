@@ -110,7 +110,7 @@ export const baseEmailTemplate = (content: string, title: string = '') => `
 <body>
     <div class="email-wrapper">
         <div class="email-header">
-            <h1>🎫 Sistema de Tickets</h1>
+            <h1>Sistema de Tickets</h1>
         </div>
         <div class="email-body">
             <div class="content">

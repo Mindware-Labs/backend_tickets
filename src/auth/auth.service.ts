@@ -27,28 +27,53 @@ export class AuthService {
   async register(registerDto: RegisterDto) {
     const { email, name, lastName, password } = registerDto;
 
-    const existingUser = await this.userRepository.findOne({
-      where: { email },
-    });
-    if (existingUser) {
-      throw new ConflictException('Email already in use');
+    let user: User;
+    let verificationToken: string;
+
+    try {
+      const existingUser = await this.userRepository.findOne({
+        where: { email },
+      });
+      if (existingUser) {
+        throw new ConflictException('Email already in use');
+      }
+
+      // Generate verification token
+      verificationToken = crypto.randomBytes(32).toString('hex');
+      const verificationTokenExpiry = new Date(Date.now() + 24 * 3600000); // 24 hours
+
+      user = this.userRepository.create({
+        name,
+        lastName,
+        email,
+        password,
+        emailVerified: false,
+        verificationToken,
+        verificationTokenExpiry,
+      });
+
+      await this.userRepository.save(user);
+    } catch (error) {
+      // Log the full error for debugging
+      console.error('Registration error:', error);
+      
+      // If it's already a known exception, re-throw it
+      if (error instanceof ConflictException) {
+        throw error;
+      }
+      
+      // For database errors, provide more context
+      if (error.code === '42703' || error.message?.includes('column') || error.message?.includes('does not exist')) {
+        throw new BadRequestException(
+          'Database schema error: Missing required columns. Please run the database schema fix script: npm run fix:schema'
+        );
+      }
+      
+      // Re-throw with original message
+      throw new BadRequestException(
+        error.message || 'Failed to register user. Please check the server logs for details.'
+      );
     }
-
-    // Generate verification token
-    const verificationToken = crypto.randomBytes(32).toString('hex');
-    const verificationTokenExpiry = new Date(Date.now() + 24 * 3600000); // 24 hours
-
-    const user = this.userRepository.create({
-      name,
-      lastName,
-      email,
-      password,
-      emailVerified: false,
-      verificationToken,
-      verificationTokenExpiry,
-    });
-
-    await this.userRepository.save(user);
 
     // Send verification email (don't fail registration if email fails)
     try {
@@ -57,10 +82,35 @@ export class AuthService {
         verificationToken,
         `${user.name} ${user.lastName}`,
       );
-    } catch (emailError) {
+    } catch (emailError: any) {
       // Log error but don't fail registration
       console.error('Failed to send verification email:', emailError);
-      // In development, return the token so user can verify manually
+      
+      // Check if it's an invalid email address error
+      const errorMessage = emailError?.message || '';
+      if (errorMessage.includes('does not exist') || 
+          errorMessage.includes('NoSuchUser') ||
+          errorMessage.includes('550')) {
+        // In development, return the token so user can verify manually
+        if (process.env.NODE_ENV === 'development') {
+          return {
+            message: `Usuario registrado exitosamente. Sin embargo, la dirección de email ${user.email} no existe o no puede recibir correos. Por favor verifica que la dirección sea correcta. Puedes verificar manualmente usando el enlace de abajo.`,
+            email: user.email,
+            verificationToken: verificationToken, // Only in development
+            verificationLink: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/verify-email?token=${verificationToken}`,
+            warning: 'La dirección de email proporcionada no existe. Por favor verifica que sea correcta.',
+          };
+        } else {
+          // In production, still return success but warn about email
+          return {
+            message: `Usuario registrado exitosamente. Sin embargo, no pudimos enviar el correo de verificación a ${user.email}. Por favor verifica que la dirección de email sea correcta y contacta al administrador si necesitas ayuda.`,
+            email: user.email,
+            warning: 'No se pudo enviar el correo de verificación. Verifica que la dirección de email sea correcta.',
+          };
+        }
+      }
+      
+      // For other email errors, still return token in development
       if (process.env.NODE_ENV === 'development') {
         return {
           message: 'User registered successfully. Email verification failed, but you can verify manually using the token below.',

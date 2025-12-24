@@ -30,9 +30,15 @@ export class EmailService {
         const user = this.configService.get<string>('EMAIL_USER');
         const pass = this.configService.get<string>('EMAIL_PASSWORD');
 
-        this.fromEmail =
-            this.configService.get<string>('EMAIL_FROM') ||
-            '"Sistema de Tickets" <noreply@tickets.com>';
+        // Asegurar que el formato del remitente sea correcto
+        const emailFrom = this.configService.get<string>('EMAIL_FROM');
+        if (emailFrom) {
+            // Si ya tiene formato correcto, usarlo
+            this.fromEmail = emailFrom.includes('<') ? emailFrom : `"Sistema de Tickets" <${emailFrom}>`;
+        } else {
+            // Si no está configurado, usar el EMAIL_USER como fallback
+            this.fromEmail = user ? `"Sistema de Tickets" <${user}>` : '"Sistema de Tickets" <noreply@tickets.com>';
+        }
         this.frontendUrl =
             this.configService.get<string>('FRONTEND_URL') || 'http://localhost:3000';
 
@@ -50,6 +56,14 @@ export class EmailService {
                 user: user,
                 pass: pass,
             },
+            // Configuración adicional para mejorar la entrega
+            tls: {
+                rejectUnauthorized: false,
+            },
+            // Timeout aumentado para evitar errores
+            connectionTimeout: 10000,
+            greetingTimeout: 10000,
+            socketTimeout: 10000,
         });
     }
 
@@ -60,16 +74,41 @@ export class EmailService {
             subject: options.subject,
             html: options.html,
             text: options.text,
+            // Headers para evitar spam y mejorar la entrega
+            // Nota: No usar 'Auto-Submitted' ya que hace que Gmail lo trate como notificación
+            headers: {
+                'X-Priority': '1',
+                'X-MSMail-Priority': 'High',
+                'Importance': 'high',
+                'X-Mailer': 'Sistema de Tickets',
+                'MIME-Version': '1.0',
+                'X-Auto-Response-Suppress': 'All',
+            },
+            // Configuración adicional para mejorar la entrega
+            priority: 'high' as 'high' | 'normal' | 'low',
+            date: new Date(),
+            // Reply-To debe ser el mismo que el remitente para evitar problemas
+            replyTo: this.fromEmail,
         };
 
         try {
             const info = await this.transporter.sendMail(mailOptions);
             this.logger.log(
-                `Email sent successfully to ${options.to}: ${info.messageId}`,
+                `Email sent successfully to ${options.to}: ${info?.messageId || 'N/A'}`,
             );
             return info;
-        } catch (error) {
+        } catch (error: any) {
             this.logger.error(`Error sending email to ${options.to}`, error);
+            
+            // Detectar errores específicos de Gmail
+            if (error.responseCode === 550 || error.code === 'EENVELOPE' || 
+                (error.message && error.message.includes('550'))) {
+                const errorMessage = error.message || '';
+                if (errorMessage.includes('does not exist') || errorMessage.includes('NoSuchUser')) {
+                    throw new Error(`La dirección de email ${options.to} no existe o no puede recibir correos. Por favor verifica que la dirección sea correcta.`);
+                }
+            }
+            
             throw error;
         }
     }
@@ -167,7 +206,7 @@ export class EmailService {
 
         return this.sendEmail({
             to,
-            subject: '✉️ Verifica tu Cuenta - Sistema de Tickets',
+            subject: '🔐 Verifica tu Cuenta - Sistema de Tickets',
             html,
             text: `Hola ${userName}, por favor verifica tu cuenta usando el siguiente enlace: ${verificationLink}. Este enlace expirará en 24 horas.`,
         });
