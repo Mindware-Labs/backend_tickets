@@ -126,6 +126,14 @@ export class TicketService {
     return this.findOne(id);
   }
 
+  async addAttachments(id: number, fileUrls: string[]) {
+    const ticket = await this.findOne(id);
+    const existing = ticket.attachments || [];
+    ticket.attachments = [...existing, ...fileUrls];
+    await this.ticketRepository.save(ticket);
+    return this.findOne(id);
+  }
+
   async remove(id: number) {
     const ticket = await this.findOne(id);
     await this.ticketRepository.remove(ticket);

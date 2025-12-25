@@ -7,8 +7,9 @@ import {
   Param,
   Delete,
   Request,
-  UseGuards,
   Query,
+  UseInterceptors,
+  UploadedFiles,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -16,17 +17,35 @@ import {
   ApiResponse,
   ApiQuery,
   ApiParam,
+  ApiBody,
+  ApiConsumes,
 } from '@nestjs/swagger';
 import { TicketService } from './ticket.service';
 import { CreateTicketDto } from './dto/create-ticket.dto';
 import { UpdateTicketDto } from './dto/update-ticket.dto';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { IdValidationPipe } from '../common/id-validation.pipe';
+import { FilesInterceptor } from '@nestjs/platform-express';
+import { diskStorage } from 'multer';
+import * as path from 'path';
 
 @ApiTags('tickets')
 @Controller('tickets')
 export class TicketController {
   constructor(private readonly ticketService: TicketService) {}
+
+  private static buildAttachmentStorage() {
+    return diskStorage({
+      destination: path.join(process.cwd(), 'uploads', 'tickets'),
+      filename: (_req, file, cb) => {
+        const original = file.originalname || 'file';
+        const safeName = original.replace(/[^a-zA-Z0-9._-]/g, '_');
+        const unique = `${Date.now()}-${Math.round(
+          Math.random() * 1e9,
+        )}-${safeName}`;
+        cb(null, unique);
+      },
+    });
+  }
 
   @Post()
   @ApiOperation({ summary: 'Crear nuevo ticket' })
@@ -78,6 +97,37 @@ export class TicketController {
     @Body() updateTicketDto: UpdateTicketDto,
   ) {
     return this.ticketService.update(+id, updateTicketDto);
+  }
+
+  @Post(':id/attachments')
+  @UseInterceptors(
+    FilesInterceptor('files', 5, {
+      storage: TicketController.buildAttachmentStorage(),
+    }),
+  )
+  @ApiConsumes('multipart/form-data')
+  @ApiOperation({ summary: 'Subir adjuntos para un ticket' })
+  @ApiParam({ name: 'id', type: Number, description: 'ID del ticket' })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        files: {
+          type: 'array',
+          items: { type: 'string', format: 'binary' },
+        },
+      },
+    },
+  })
+  @ApiResponse({ status: 200, description: 'Adjuntos subidos' })
+  uploadAttachments(
+    @Param('id', IdValidationPipe) id: string,
+    @UploadedFiles() files: Array<{ filename: string }>,
+  ) {
+    const fileUrls = (files || []).map(
+      (file) => `/uploads/tickets/${file.filename}`,
+    );
+    return this.ticketService.addAttachments(+id, fileUrls);
   }
 
   @Delete(':id')
