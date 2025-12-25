@@ -12,7 +12,7 @@ export class Knowledge {
   description: string;
 
   @Column({ type: 'varchar', length: 500, nullable: true })
-  fileUrl: string;
+  fileUrl?: string;
 
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   date: Date;

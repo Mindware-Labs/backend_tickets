@@ -4,6 +4,8 @@ import { UpdatePolicyDto } from './dto/update-policy.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Policy } from './entities/policy.entity';
 import { Repository } from 'typeorm';
+import * as fs from 'fs';
+import * as path from 'path';
 
 @Injectable()
 export class PoliciesService {
@@ -52,7 +54,33 @@ export class PoliciesService {
 
   async remove(id: number) {
     const policy = await this.findOne(id);
+    await this.removeFileIfExists(policy.fileUrl);
     await this.policyRepository.remove(policy);
     return { message: `Policy with ID ${id} has been removed` };
+  }
+
+  resolveFilePath(fileUrl?: string) {
+    if (!fileUrl) return null;
+    const normalized = fileUrl.replace(/\\/g, '/');
+    const prefix = '/uploads/policies/';
+    const startIndex = normalized.indexOf(prefix);
+    const filename =
+      startIndex >= 0
+        ? normalized.slice(startIndex + prefix.length)
+        : normalized.split('/').pop();
+    if (!filename) return null;
+    return path.join(process.cwd(), 'uploads', 'policies', filename);
+  }
+
+  async removeFileIfExists(fileUrl?: string) {
+    const filePath = this.resolveFilePath(fileUrl);
+    if (!filePath) return;
+    try {
+      await fs.promises.unlink(filePath);
+    } catch (error: any) {
+      if (error?.code !== 'ENOENT') {
+        console.warn(`Failed to delete file ${filePath}`, error);
+      }
+    }
   }
 }

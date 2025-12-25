@@ -4,6 +4,8 @@ import { UpdateKnowledgeDto } from './dto/update-knowledge.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Knowledge } from './entities/knowledge.entity';
 import { Repository } from 'typeorm';
+import * as fs from 'fs';
+import * as path from 'path';
 
 @Injectable()
 export class KnowledgeService {
@@ -53,8 +55,34 @@ export class KnowledgeService {
 
   async remove(id: number) {
     const knowledge = await this.findOne(id);
+    await this.removeFileIfExists(knowledge.fileUrl);
     await this.knowledgeRepository.remove(knowledge);
 
     return { message: `Knowledge with ID ${id} has been removed` };
+  }
+
+  resolveFilePath(fileUrl?: string) {
+    if (!fileUrl) return null;
+    const normalized = fileUrl.replace(/\\/g, '/');
+    const prefix = '/uploads/knowledge/';
+    const startIndex = normalized.indexOf(prefix);
+    const filename =
+      startIndex >= 0
+        ? normalized.slice(startIndex + prefix.length)
+        : normalized.split('/').pop();
+    if (!filename) return null;
+    return path.join(process.cwd(), 'uploads', 'knowledge', filename);
+  }
+
+  async removeFileIfExists(fileUrl?: string) {
+    const filePath = this.resolveFilePath(fileUrl);
+    if (!filePath) return;
+    try {
+      await fs.promises.unlink(filePath);
+    } catch (error: any) {
+      if (error?.code !== 'ENOENT') {
+        console.warn(`Failed to delete file ${filePath}`, error);
+      }
+    }
   }
 }
