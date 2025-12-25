@@ -39,6 +39,34 @@ export const passwordResetTemplate = (resetLink: string, userName?: string) => {
   return baseEmailTemplate(content, 'Restablecer Contraseña');
 };
 
+export const passwordResetCodeTemplate = (resetCode: string, userName?: string) => {
+  const content = `
+    <h2>Codigo de Restablecimiento de Contraseña</h2>
+    
+    ${userName ? `<p>Hola <strong>${userName}</strong>,</p>` : '<p>Hola,</p>'}
+    
+    <p>Hemos recibido una solicitud para restablecer la contraseña de tu cuenta. Usa el siguiente codigo para continuar. Si no solicitaste este cambio, puedes ignorar este correo.</p>
+    
+    <div class="info-box" style="text-align: center;">
+      <p style="font-size: 20px; font-weight: bold; letter-spacing: 4px; margin: 0;">
+        ${resetCode}
+      </p>
+      <p style="margin-top: 10px;"><strong>⏰ Este codigo expirara en 10 minutos</strong></p>
+    </div>
+    
+    <div class="divider"></div>
+    
+    <p style="font-size: 14px; color: #6c757d;">
+      <strong>Consejos de seguridad:</strong><br>
+      • No compartas este codigo con nadie<br>
+      • Usa una contraseña unica y segura<br>
+      • Si no solicitaste el cambio, ignora este correo
+    </p>
+  `;
+
+  return baseEmailTemplate(content, 'Restablecer Contraseña');
+};
+
 export const welcomeEmailTemplate = (userName: string, loginLink?: string) => {
   const content = `
     <h2>¡Bienvenido a Sistema de Tickets! 🎉</h2>
@@ -243,4 +271,35 @@ export const accountVerificationTemplate = (
   `;
 
   return baseEmailTemplate(content, 'Verificación de Cuenta');
+};
+
+export const accountVerificationCodeTemplate = (
+  verificationCode: string,
+  userName: string,
+) => {
+  const content = `
+    <h2>Verificacion de Cuenta</h2>
+    
+    <p>Hola <strong>${userName}</strong>,</p>
+    
+    <p>Gracias por registrarte en nuestro Sistema de Tickets. Para completar tu registro, ingresa el siguiente codigo en la pantalla de verificacion.</p>
+    
+    <div class="info-box" style="text-align: center;">
+      <p style="font-size: 20px; font-weight: bold; letter-spacing: 4px; margin: 0;">
+        ${verificationCode}
+      </p>
+      <p style="margin-top: 10px;"><strong>⏰ Este codigo expirara en 15 minutos</strong></p>
+    </div>
+    
+    <div class="divider"></div>
+    
+    <p style="font-size: 14px; color: #6c757d;">
+      <strong>Consejos de seguridad:</strong><br>
+      • No compartas este codigo con nadie<br>
+      • Si no creaste una cuenta, puedes ignorar este correo<br>
+      • Una vez verificado, podras iniciar sesion en el sistema
+    </p>
+  `;
+
+  return baseEmailTemplate(content, 'Verificacion de Cuenta');
 };

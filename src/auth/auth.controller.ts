@@ -17,6 +17,8 @@ import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
+import { VerifyEmailCodeDto } from './dto/verify-email-code.dto';
+import { VerifyResetCodeDto } from './dto/verify-reset-code.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 
 @ApiTags('auth')
@@ -69,6 +71,28 @@ export class AuthController {
   @ApiResponse({ status: 400, description: 'Token inválido o expirado' })
   verifyEmail(@Body() verifyEmailDto: any) {
     return this.authService.verifyEmail(verifyEmailDto.token);
+  }
+
+  @Post('verify-email-code')
+  @ApiOperation({ summary: 'Verificar email con codigo de 6 digitos' })
+  @ApiResponse({ status: 200, description: 'Email verificado exitosamente' })
+  @ApiResponse({ status: 400, description: 'Codigo invalido o expirado' })
+  verifyEmailCode(@Body() verifyEmailCodeDto: VerifyEmailCodeDto) {
+    return this.authService.verifyEmailWithCode(
+      verifyEmailCodeDto.email,
+      verifyEmailCodeDto.code,
+    );
+  }
+
+  @Post('verify-reset-code')
+  @ApiOperation({ summary: 'Verificar codigo de restablecimiento de password' })
+  @ApiResponse({ status: 200, description: 'Codigo valido' })
+  @ApiResponse({ status: 400, description: 'Codigo invalido o expirado' })
+  verifyResetCode(@Body() verifyResetCodeDto: VerifyResetCodeDto) {
+    return this.authService.verifyResetCode(
+      verifyResetCodeDto.email,
+      verifyResetCodeDto.code,
+    );
   }
 
   @UseGuards(JwtAuthGuard)

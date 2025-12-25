@@ -66,6 +66,18 @@ export class User {
   @Column({ nullable: true })
   verificationTokenExpiry?: Date;
 
+  @Column({ nullable: true })
+  verificationCode?: string;
+
+  @Column({ nullable: true })
+  verificationCodeExpiry?: Date;
+
+  @Column({ nullable: true })
+  resetCode?: string;
+
+  @Column({ nullable: true })
+  resetCodeExpiry?: Date;
+
   @CreateDateColumn()
   createdAt: Date;
 

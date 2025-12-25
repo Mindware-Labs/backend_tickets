@@ -2,12 +2,12 @@ import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as nodemailer from 'nodemailer';
 import {
-    passwordResetTemplate,
+    passwordResetCodeTemplate,
     welcomeEmailTemplate,
     ticketCreatedTemplate,
     ticketUpdatedTemplate,
     passwordChangedTemplate,
-    accountVerificationTemplate,
+    accountVerificationCodeTemplate,
 } from './templates/email.templates';
 
 interface EmailOptions {
@@ -113,15 +113,14 @@ export class EmailService {
         }
     }
 
-    async sendPasswordResetEmail(to: string, token: string, userName?: string) {
-        const resetLink = `${this.frontendUrl}/reset-password?token=${token}`;
-        const html = passwordResetTemplate(resetLink, userName);
+    async sendPasswordResetEmail(to: string, resetCode: string, userName?: string) {
+        const html = passwordResetCodeTemplate(resetCode, userName);
 
         return this.sendEmail({
             to,
             subject: '🔐 Restablecimiento de Contraseña - Sistema de Tickets',
             html,
-            text: `Hola${userName ? ' ' + userName : ''}, has solicitado restablecer tu contraseña. Usa el siguiente enlace: ${resetLink}. Este enlace expirará en 1 hora.`,
+            text: `Hola${userName ? ' ' + userName : ''}, has solicitado restablecer tu contraseña. Usa el siguiente codigo: ${resetCode}. Este codigo expira en 10 minutos.`,
         });
     }
 
@@ -198,17 +197,16 @@ export class EmailService {
 
     async sendAccountVerificationEmail(
         to: string,
-        token: string,
+        verificationCode: string,
         userName: string,
     ) {
-        const verificationLink = `${this.frontendUrl}/verify-email?token=${token}`;
-        const html = accountVerificationTemplate(verificationLink, userName);
+        const html = accountVerificationCodeTemplate(verificationCode, userName);
 
         return this.sendEmail({
             to,
             subject: '🔐 Verifica tu Cuenta - Sistema de Tickets',
             html,
-            text: `Hola ${userName}, por favor verifica tu cuenta usando el siguiente enlace: ${verificationLink}. Este enlace expirará en 24 horas.`,
+            text: `Hola ${userName}, por favor verifica tu cuenta usando el siguiente codigo: ${verificationCode}. Este codigo expirara en 15 minutos.`,
         });
     }
 }

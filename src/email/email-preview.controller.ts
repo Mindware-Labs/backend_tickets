@@ -2,12 +2,12 @@ import { Controller, Get, Query, Res } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiQuery } from '@nestjs/swagger';
 import type { Response } from 'express';
 import {
-  passwordResetTemplate,
+  passwordResetCodeTemplate,
   welcomeEmailTemplate,
   ticketCreatedTemplate,
   ticketUpdatedTemplate,
   passwordChangedTemplate,
-  accountVerificationTemplate,
+  accountVerificationCodeTemplate,
 } from './templates/email.templates';
 
 @ApiTags('email-preview')
@@ -22,10 +22,7 @@ export class EmailPreviewController {
     @Query('userName') userName: string,
     @Res() res: Response,
   ) {
-    const html = passwordResetTemplate(
-      'http://localhost:3000/reset-password?token=ejemplo-token-123',
-      userName || 'Usuario Ejemplo',
-    );
+    const html = passwordResetCodeTemplate('123456', userName || 'Usuario Ejemplo');
     res.send(html);
   }
 
@@ -98,8 +95,8 @@ export class EmailPreviewController {
     @Query('userName') userName: string,
     @Res() res: Response,
   ) {
-    const html = accountVerificationTemplate(
-      'http://localhost:3000/verify-email?token=ejemplo-token-456',
+    const html = accountVerificationCodeTemplate(
+      '654321',
       userName || 'Usuario Ejemplo',
     );
     res.send(html);
@@ -163,8 +160,8 @@ export class EmailPreviewController {
         <h1>📧 Email Templates Preview</h1>
         <div class="template-list">
           <div class="template-item">
-            <h3>🔐 Password Reset</h3>
-            <p>Email para restablecer contraseña</p>
+            <h3>🔐 Password Reset Code</h3>
+            <p>Email con codigo para restablecer contraseña</p>
             <a href="/email-preview/password-reset" target="_blank">Ver Preview →</a>
           </div>
           
@@ -193,8 +190,8 @@ export class EmailPreviewController {
           </div>
           
           <div class="template-item">
-            <h3>✉️ Account Verification</h3>
-            <p>Email para verificar cuenta de nuevo usuario</p>
+            <h3>✉️ Account Verification Code</h3>
+            <p>Email con codigo para verificar cuenta de nuevo usuario</p>
             <a href="/email-preview/verify-account" target="_blank">Ver Preview →</a>
           </div>
         </div>
