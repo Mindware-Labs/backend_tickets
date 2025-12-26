@@ -71,7 +71,9 @@ export class KnowledgeService {
         ? normalized.slice(startIndex + prefix.length)
         : normalized.split('/').pop();
     if (!filename) return null;
-    return path.join(process.cwd(), 'uploads', 'knowledge', filename);
+    const filePath = path.join(process.cwd(), 'uploads', 'knowledge', filename);
+    if (!fs.existsSync(filePath)) return null;
+    return filePath;
   }
 
   async removeFileIfExists(fileUrl?: string) {
