@@ -69,7 +69,9 @@ export class PoliciesService {
         ? normalized.slice(startIndex + prefix.length)
         : normalized.split('/').pop();
     if (!filename) return null;
-    return path.join(process.cwd(), 'uploads', 'policies', filename);
+    const filePath = path.join(process.cwd(), 'uploads', 'policies', filename);
+    if (!fs.existsSync(filePath)) return null;
+    return filePath;
   }
 
   async removeFileIfExists(fileUrl?: string) {

@@ -21,6 +21,7 @@ import { UpdatePolicyDto } from './dto/update-policy.dto';
 import { IdValidationPipe } from '../common/id-validation.pipe';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
+import * as fs from 'fs';
 import * as path from 'path';
 import type { Response } from 'express';
 
@@ -35,8 +36,13 @@ export class PoliciesController {
   constructor(private readonly policiesService: PoliciesService) {}
 
   private static buildStorage() {
+    const uploadPath = path.join(process.cwd(), 'uploads', 'policies');
+    if (!fs.existsSync(uploadPath)) {
+      fs.mkdirSync(uploadPath, { recursive: true });
+    }
+
     return diskStorage({
-      destination: path.join(process.cwd(), 'uploads', 'policies'),
+      destination: uploadPath,
       filename: (_req, file, cb) => {
         const original = file.originalname || 'file';
         const safeName = original.replace(/[^a-zA-Z0-9._-]/g, '_');

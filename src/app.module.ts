@@ -14,6 +14,7 @@ import { CampaignModule } from './campaign/campaign.module';
 import { YardsModule } from './yards/yards.module';
 import { KnowledgeModule } from './knowledge/knowledge.module';
 import { PoliciesModule } from './policies/policies.module';
+import { ReportsModule } from './reports/reports.module';
 
 @Module({
   imports: [
@@ -34,6 +35,7 @@ import { PoliciesModule } from './policies/policies.module';
     YardsModule,
     KnowledgeModule,
     PoliciesModule,
+    ReportsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
