@@ -5,7 +5,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Knowledge } from './entities/knowledge.entity';
 import { Repository } from 'typeorm';
 import * as fs from 'fs';
-import * as path from 'path';
+import { resolveUploadsFilePath } from '../common/uploads';
 
 @Injectable()
 export class KnowledgeService {
@@ -62,18 +62,7 @@ export class KnowledgeService {
   }
 
   resolveFilePath(fileUrl?: string) {
-    if (!fileUrl) return null;
-    const normalized = fileUrl.replace(/\\/g, '/');
-    const prefix = '/uploads/knowledge/';
-    const startIndex = normalized.indexOf(prefix);
-    const filename =
-      startIndex >= 0
-        ? normalized.slice(startIndex + prefix.length)
-        : normalized.split('/').pop();
-    if (!filename) return null;
-    const filePath = path.join(process.cwd(), 'uploads', 'knowledge', filename);
-    if (!fs.existsSync(filePath)) return null;
-    return filePath;
+    return resolveUploadsFilePath('knowledge', fileUrl);
   }
 
   async removeFileIfExists(fileUrl?: string) {

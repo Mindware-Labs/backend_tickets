@@ -5,7 +5,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Policy } from './entities/policy.entity';
 import { Repository } from 'typeorm';
 import * as fs from 'fs';
-import * as path from 'path';
+import { resolveUploadsFilePath } from '../common/uploads';
 
 @Injectable()
 export class PoliciesService {
@@ -60,18 +60,7 @@ export class PoliciesService {
   }
 
   resolveFilePath(fileUrl?: string) {
-    if (!fileUrl) return null;
-    const normalized = fileUrl.replace(/\\/g, '/');
-    const prefix = '/uploads/policies/';
-    const startIndex = normalized.indexOf(prefix);
-    const filename =
-      startIndex >= 0
-        ? normalized.slice(startIndex + prefix.length)
-        : normalized.split('/').pop();
-    if (!filename) return null;
-    const filePath = path.join(process.cwd(), 'uploads', 'policies', filename);
-    if (!fs.existsSync(filePath)) return null;
-    return filePath;
+    return resolveUploadsFilePath('policies', fileUrl);
   }
 
   async removeFileIfExists(fileUrl?: string) {
