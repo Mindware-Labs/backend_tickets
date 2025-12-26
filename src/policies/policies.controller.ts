@@ -20,33 +20,25 @@ import { CreatePolicyDto } from './dto/create-policy.dto';
 import { UpdatePolicyDto } from './dto/update-policy.dto';
 import { IdValidationPipe } from '../common/id-validation.pipe';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { diskStorage } from 'multer';
-import { ensureUploadsDir } from '../common/uploads';
+import { memoryStorage } from 'multer';
+import {
+  getSignedDownloadUrl,
+  resolveStoredFileLocation,
+  storeUploadedFile,
+} from '../common/storage';
 import type { Response } from 'express';
 
 type UploadedPolicyFile = {
   filename: string;
   originalname?: string;
+  mimetype?: string;
+  buffer: Buffer;
 };
 
 @ApiTags('policies')
 @Controller('policies')
 export class PoliciesController {
   constructor(private readonly policiesService: PoliciesService) {}
-
-  private static buildStorage() {
-    return diskStorage({
-      destination: ensureUploadsDir('policies'),
-      filename: (_req, file, cb) => {
-        const original = file.originalname || 'file';
-        const safeName = original.replace(/[^a-zA-Z0-9._-]/g, '_');
-        const unique = `${Date.now()}-${Math.round(
-          Math.random() * 1e9,
-        )}-${safeName}`;
-        cb(null, unique);
-      },
-    });
-  }
 
   @Post()
   @ApiOperation({ summary: 'Crear una nueva política' })
@@ -56,7 +48,7 @@ export class PoliciesController {
 
   @Post('with-file')
   @UseInterceptors(
-    FileInterceptor('file', { storage: PoliciesController.buildStorage() }),
+    FileInterceptor('file', { storage: memoryStorage() }),
   )
   @ApiConsumes('multipart/form-data')
   @ApiOperation({ summary: 'Crear una nueva política con archivo' })
@@ -75,13 +67,20 @@ export class PoliciesController {
     status: 201,
     description: 'Política creada exitosamente',
   })
-  createWithFile(
+  async createWithFile(
     @Body() createPolicyDto: CreatePolicyDto,
     @UploadedFile() file?: UploadedPolicyFile,
   ) {
-    if (file) {
-      createPolicyDto.fileUrl = `/uploads/policies/${file.filename}`;
+    if (!file) {
+      return this.policiesService.create(createPolicyDto);
     }
+
+    createPolicyDto.fileUrl = await storeUploadedFile({
+      folder: 'policies',
+      buffer: file.buffer,
+      contentType: file.mimetype,
+      originalName: file.originalname || 'file',
+    });
     return this.policiesService.create(createPolicyDto);
   }
 
@@ -111,7 +110,7 @@ export class PoliciesController {
 
   @Patch(':id/with-file')
   @UseInterceptors(
-    FileInterceptor('file', { storage: PoliciesController.buildStorage() }),
+    FileInterceptor('file', { storage: memoryStorage() }),
   )
   @ApiConsumes('multipart/form-data')
   @ApiOperation({ summary: 'Actualizar una política con archivo' })
@@ -138,7 +137,12 @@ export class PoliciesController {
     if (file) {
       const existing = await this.policiesService.findOne(+id);
       await this.policiesService.removeFileIfExists(existing.fileUrl);
-      updatePolicyDto.fileUrl = `/uploads/policies/${file.filename}`;
+      updatePolicyDto.fileUrl = await storeUploadedFile({
+        folder: 'policies',
+        buffer: file.buffer,
+        contentType: file.mimetype,
+        originalName: file.originalname || 'file',
+      });
     }
     return this.policiesService.update(+id, updatePolicyDto);
   }
@@ -162,11 +166,18 @@ export class PoliciesController {
     if (!policy.fileUrl) {
       throw new NotFoundException('No file associated with this policy');
     }
-    const filePath = this.policiesService.resolveFilePath(policy.fileUrl);
-    if (!filePath) {
+    const location = resolveStoredFileLocation('policies', policy.fileUrl);
+    if (!location) {
       throw new NotFoundException('File not found');
     }
-    return res.download(filePath);
+    if (location.type === 's3') {
+      const signedUrl = await getSignedDownloadUrl(location);
+      if (!signedUrl) {
+        throw new NotFoundException('File not found');
+      }
+      return res.redirect(signedUrl);
+    }
+    return res.download(location.filePath);
   }
 
   @Delete(':id')

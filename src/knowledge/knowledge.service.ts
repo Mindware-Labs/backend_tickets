@@ -4,8 +4,7 @@ import { UpdateKnowledgeDto } from './dto/update-knowledge.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Knowledge } from './entities/knowledge.entity';
 import { Repository } from 'typeorm';
-import * as fs from 'fs';
-import { resolveUploadsFilePath } from '../common/uploads';
+import { removeStoredFile } from '../common/storage';
 
 @Injectable()
 export class KnowledgeService {
@@ -61,19 +60,7 @@ export class KnowledgeService {
     return { message: `Knowledge with ID ${id} has been removed` };
   }
 
-  resolveFilePath(fileUrl?: string) {
-    return resolveUploadsFilePath('knowledge', fileUrl);
-  }
-
   async removeFileIfExists(fileUrl?: string) {
-    const filePath = this.resolveFilePath(fileUrl);
-    if (!filePath) return;
-    try {
-      await fs.promises.unlink(filePath);
-    } catch (error: any) {
-      if (error?.code !== 'ENOENT') {
-        console.warn(`Failed to delete file ${filePath}`, error);
-      }
-    }
+    await removeStoredFile(fileUrl);
   }
 }

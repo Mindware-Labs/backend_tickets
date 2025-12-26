@@ -28,33 +28,25 @@ import { CreateKnowledgeDto } from './dto/create-knowledge.dto';
 import { UpdateKnowledgeDto } from './dto/update-knowledge.dto';
 import { IdValidationPipe } from '../common/id-validation.pipe';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { diskStorage } from 'multer';
-import { ensureUploadsDir } from '../common/uploads';
+import { memoryStorage } from 'multer';
+import {
+  getSignedDownloadUrl,
+  resolveStoredFileLocation,
+  storeUploadedFile,
+} from '../common/storage';
 import type { Response } from 'express';
 
 type UploadedKnowledgeFile = {
   filename: string;
   originalname?: string;
+  mimetype?: string;
+  buffer: Buffer;
 };
 
 @ApiTags('knowledge')
 @Controller('knowledge')
 export class KnowledgeController {
   constructor(private readonly knowledgeService: KnowledgeService) {}
-
-  private static buildStorage() {
-    return diskStorage({
-      destination: ensureUploadsDir('knowledge'),
-      filename: (_req, file, cb) => {
-        const original = file.originalname || 'file';
-        const safeName = original.replace(/[^a-zA-Z0-9._-]/g, '_');
-        const unique = `${Date.now()}-${Math.round(
-          Math.random() * 1e9,
-        )}-${safeName}`;
-        cb(null, unique);
-      },
-    });
-  }
 
   @Post()
   @ApiOperation({ summary: 'Crear un nuevo artículo de conocimiento' })
@@ -73,7 +65,7 @@ export class KnowledgeController {
 
   @Post('with-file')
   @UseInterceptors(
-    FileInterceptor('file', { storage: KnowledgeController.buildStorage() }),
+    FileInterceptor('file', { storage: memoryStorage() }),
   )
   @ApiConsumes('multipart/form-data')
   @ApiOperation({
@@ -94,13 +86,20 @@ export class KnowledgeController {
     status: 201,
     description: 'Artículo de conocimiento creado exitosamente',
   })
-  createWithFile(
+  async createWithFile(
     @Body() createKnowledgeDto: CreateKnowledgeDto,
     @UploadedFile() file?: UploadedKnowledgeFile,
   ) {
-    if (file) {
-      createKnowledgeDto.fileUrl = `/uploads/knowledge/${file.filename}`;
+    if (!file) {
+      return this.knowledgeService.create(createKnowledgeDto);
     }
+
+    createKnowledgeDto.fileUrl = await storeUploadedFile({
+      folder: 'knowledge',
+      buffer: file.buffer,
+      contentType: file.mimetype,
+      originalName: file.originalname || 'file',
+    });
     return this.knowledgeService.create(createKnowledgeDto);
   }
 
@@ -167,7 +166,7 @@ export class KnowledgeController {
 
   @Patch(':id/with-file')
   @UseInterceptors(
-    FileInterceptor('file', { storage: KnowledgeController.buildStorage() }),
+    FileInterceptor('file', { storage: memoryStorage() }),
   )
   @ApiConsumes('multipart/form-data')
   @ApiOperation({
@@ -196,7 +195,12 @@ export class KnowledgeController {
     if (file) {
       const existing = await this.knowledgeService.findOne(+id);
       await this.knowledgeService.removeFileIfExists(existing.fileUrl);
-      updateKnowledgeDto.fileUrl = `/uploads/knowledge/${file.filename}`;
+      updateKnowledgeDto.fileUrl = await storeUploadedFile({
+        folder: 'knowledge',
+        buffer: file.buffer,
+        contentType: file.mimetype,
+        originalName: file.originalname || 'file',
+      });
     }
     return this.knowledgeService.update(+id, updateKnowledgeDto);
   }
@@ -220,11 +224,21 @@ export class KnowledgeController {
     if (!knowledge.fileUrl) {
       throw new NotFoundException('No file associated with this knowledge');
     }
-    const filePath = this.knowledgeService.resolveFilePath(knowledge.fileUrl);
-    if (!filePath) {
+    const location = resolveStoredFileLocation(
+      'knowledge',
+      knowledge.fileUrl,
+    );
+    if (!location) {
       throw new NotFoundException('File not found');
     }
-    return res.download(filePath);
+    if (location.type === 's3') {
+      const signedUrl = await getSignedDownloadUrl(location);
+      if (!signedUrl) {
+        throw new NotFoundException('File not found');
+      }
+      return res.redirect(signedUrl);
+    }
+    return res.download(location.filePath);
   }
 
   @Delete(':id')
