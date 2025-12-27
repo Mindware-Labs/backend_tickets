@@ -22,11 +22,16 @@ export class YardsService {
   }
 
   findAll() {
-    return this.yardRepository.find();
+    return this.yardRepository.find({
+      relations: ['landlord'],
+    });
   }
 
   async findOne(id: number) {
-    const yard = await this.yardRepository.findOneBy({ id });
+    const yard = await this.yardRepository.findOne({
+      where: { id },
+      relations: ['landlord'],
+    });
 
     if (!yard) {
       throw new NotFoundException(`Yard with ID ${id} not found`);

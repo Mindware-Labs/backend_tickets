@@ -4,12 +4,9 @@ import { Repository } from 'typeorm';
 import { WebhookEvent } from '../../web-hook-event/entities/web-hook-event.entity';
 import {
   Ticket,
-  ContactSource,
-  ManagementType,
   TicketPriority,
   TicketStatus,
   CallDirection,
-  OnboardingOption,
 } from '../../ticket/entities/ticket.entity';
 import { Customer } from '../../customers/entities/customer.entity';
 import { Agent } from '../../agents/entities/agent.entity';

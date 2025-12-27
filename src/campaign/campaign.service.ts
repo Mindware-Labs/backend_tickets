@@ -21,32 +21,25 @@ export class CampaignService {
   ) {}
 
   private async getTicketCounts(campaigns: Campaign[]) {
-    const yardIds = Array.from(
-      new Set(campaigns.map((campaign) => campaign.yardaId).filter(Boolean)),
+    const campaignIds = Array.from(
+      new Set(campaigns.map((campaign) => campaign.id).filter(Boolean)),
     ) as number[];
-    const types = Array.from(
-      new Set(campaigns.map((campaign) => campaign.tipo).filter(Boolean)),
-    );
 
-    if (yardIds.length === 0 || types.length === 0) {
-      return new Map<string, number>();
+    if (campaignIds.length === 0) {
+      return new Map<number, number>();
     }
 
     const rows = await this.ticketRepo
       .createQueryBuilder('ticket')
-      .select('ticket.yardId', 'yardId')
-      .addSelect('ticket.campaign', 'campaign')
+      .select('ticket.campaignId', 'campaignId')
       .addSelect('COUNT(ticket.id)', 'count')
-      .where('ticket.yardId IN (:...yardIds)', { yardIds })
-      .andWhere('ticket.campaign IN (:...types)', { types })
-      .groupBy('ticket.yardId')
-      .addGroupBy('ticket.campaign')
-      .getRawMany<{ yardId: number; campaign: string; count: string }>();
+      .where('ticket.campaignId IN (:...campaignIds)', { campaignIds })
+      .groupBy('ticket.campaignId')
+      .getRawMany<{ campaignId: number; count: string }>();
 
-    const counts = new Map<string, number>();
+    const counts = new Map<number, number>();
     rows.forEach((row) => {
-      const key = `${row.yardId}-${row.campaign}`;
-      counts.set(key, Number(row.count));
+      counts.set(row.campaignId, Number(row.count));
     });
 
     return counts;
@@ -86,10 +79,7 @@ export class CampaignService {
     const counts = await this.getTicketCounts(campaigns);
     const data = campaigns.map((campaign) => ({
       ...campaign,
-      ticketCount:
-        campaign.yardaId !== undefined
-          ? counts.get(`${campaign.yardaId}-${campaign.tipo}`) || 0
-          : 0,
+      ticketCount: counts.get(campaign.id) || 0,
     }));
 
     return {
@@ -109,15 +99,11 @@ export class CampaignService {
     if (!campaign) {
       throw new NotFoundException(`Campaign with ID ${id} not found`);
     }
-    const ticketCount =
-      campaign.yardaId !== undefined
-        ? await this.ticketRepo.count({
-            where: {
-              yardId: campaign.yardaId,
-              campaign: campaign.tipo as any,
-            },
-          })
-        : 0;
+    const ticketCount = await this.ticketRepo.count({
+      where: {
+        campaignId: campaign.id,
+      },
+    });
 
     return {
       ...campaign,
@@ -162,10 +148,7 @@ export class CampaignService {
       const counts = await this.getTicketCounts(campaigns);
       return campaigns.map((campaign) => ({
         ...campaign,
-        ticketCount:
-          campaign.yardaId !== undefined
-            ? counts.get(`${campaign.yardaId}-${campaign.tipo}`) || 0
-            : 0,
+        ticketCount: counts.get(campaign.id) || 0,
       }));
     });
   }
@@ -179,10 +162,7 @@ export class CampaignService {
       const counts = await this.getTicketCounts(campaigns);
       return campaigns.map((campaign) => ({
         ...campaign,
-        ticketCount:
-          campaign.yardaId !== undefined
-            ? counts.get(`${campaign.yardaId}-${campaign.tipo}`) || 0
-            : 0,
+        ticketCount: counts.get(campaign.id) || 0,
       }));
     });
   }

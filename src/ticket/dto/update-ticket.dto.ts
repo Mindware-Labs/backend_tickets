@@ -14,7 +14,6 @@ import {
   TicketStatus,
   TicketDisposition,
   CallDirection,
-  ManagementType,
   OnboardingOption,
 } from '../entities/ticket.entity';
 
@@ -59,7 +58,8 @@ export class UpdateTicketDto {
   customerPhone?: string;
 
   @ApiProperty({
-    description: 'Ticket disposition - entered manually by the agent (optional)',
+    description:
+      'Ticket disposition - entered manually by the agent (optional)',
     enum: TicketDisposition,
     example: TicketDisposition.BOOKING,
     required: false,
@@ -69,14 +69,13 @@ export class UpdateTicketDto {
   disposition?: TicketDisposition;
 
   @ApiProperty({
-    description: 'Campaign - ONBOARDING or AR (optional)',
-    enum: ManagementType,
-    example: ManagementType.ONBOARDING,
+    description: 'Associated campaign ID (optional)',
+    example: 1,
     required: false,
   })
   @IsOptional()
-  @IsEnum(ManagementType)
-  campaign?: ManagementType;
+  @IsNumber()
+  campaignId?: number;
 
   @ApiProperty({
     description: 'Assigned agent ID (optional)',

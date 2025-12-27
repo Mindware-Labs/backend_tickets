@@ -303,3 +303,110 @@ export const accountVerificationCodeTemplate = (
 
   return baseEmailTemplate(content, 'Account Verification');
 };
+
+export const landlordReportTemplate = (
+  landlordName: string,
+  startDate: string,
+  endDate: string,
+  totalTickets: number,
+  inbound: number,
+  outbound: number,
+  averagePerYard: number,
+  topYards: Array<{ name: string; total: number }>,
+  callsByDay: Array<{ date: string; total: number; inbound: number; outbound: number }>,
+  yardRows: Array<{ name: string; total: number; inbound: number; outbound: number }>,
+) => {
+  const rows = yardRows
+    .map(
+      (row) => `
+        <tr>
+          <td style="padding: 8px 12px; border-bottom: 1px solid #e9ecef;">${row.name}</td>
+          <td style="padding: 8px 12px; border-bottom: 1px solid #e9ecef; text-align: right;">${row.total}</td>
+          <td style="padding: 8px 12px; border-bottom: 1px solid #e9ecef; text-align: right;">${row.inbound}</td>
+          <td style="padding: 8px 12px; border-bottom: 1px solid #e9ecef; text-align: right;">${row.outbound}</td>
+        </tr>
+      `,
+    )
+    .join('');
+
+  const topYardRows = topYards
+    .map(
+      (row) => `
+        <tr>
+          <td style="padding: 8px 12px; border-bottom: 1px solid #e9ecef;">${row.name}</td>
+          <td style="padding: 8px 12px; border-bottom: 1px solid #e9ecef; text-align: right;">${row.total}</td>
+        </tr>
+      `,
+    )
+    .join('');
+
+  const dayRows = callsByDay
+    .slice(0, 14)
+    .map(
+      (row) => `
+        <tr>
+          <td style="padding: 8px 12px; border-bottom: 1px solid #e9ecef;">${row.date}</td>
+          <td style="padding: 8px 12px; border-bottom: 1px solid #e9ecef; text-align: right;">${row.total}</td>
+          <td style="padding: 8px 12px; border-bottom: 1px solid #e9ecef; text-align: right;">${row.inbound}</td>
+          <td style="padding: 8px 12px; border-bottom: 1px solid #e9ecef; text-align: right;">${row.outbound}</td>
+        </tr>
+      `,
+    )
+    .join('');
+
+  const content = `
+    <h2>Landlord Report</h2>
+    <p>Hi <strong>${landlordName}</strong>,</p>
+    <p>Here is your report for <strong>${startDate}</strong> to <strong>${endDate}</strong>.</p>
+    <div class="info-box">
+      <p><strong>Total Tickets:</strong> ${totalTickets}</p>
+      <p><strong>Inbound Calls:</strong> ${inbound}</p>
+      <p><strong>Outbound Calls:</strong> ${outbound}</p>
+      <p><strong>Average per Yard:</strong> ${averagePerYard}</p>
+    </div>
+    <table style="width:100%; border-collapse: collapse; font-size: 14px;">
+      <thead>
+        <tr style="background:#f8f9fa;">
+          <th style="text-align:left; padding:8px 12px; border-bottom:1px solid #e9ecef;">Yard</th>
+          <th style="text-align:right; padding:8px 12px; border-bottom:1px solid #e9ecef;">Total</th>
+          <th style="text-align:right; padding:8px 12px; border-bottom:1px solid #e9ecef;">Inbound</th>
+          <th style="text-align:right; padding:8px 12px; border-bottom:1px solid #e9ecef;">Outbound</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${rows || '<tr><td colspan="4" style="padding:8px 12px;">No data available.</td></tr>'}
+      </tbody>
+    </table>
+    <div class="divider"></div>
+    <h3 style="margin-top: 0;">Top 5 Yards</h3>
+    <table style="width:100%; border-collapse: collapse; font-size: 14px;">
+      <thead>
+        <tr style="background:#f8f9fa;">
+          <th style="text-align:left; padding:8px 12px; border-bottom:1px solid #e9ecef;">Yard</th>
+          <th style="text-align:right; padding:8px 12px; border-bottom:1px solid #e9ecef;">Total</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${topYardRows || '<tr><td colspan="2" style="padding:8px 12px;">No data available.</td></tr>'}
+      </tbody>
+    </table>
+    <div class="divider"></div>
+    <h3 style="margin-top: 0;">Calls by Day (first 14 days)</h3>
+    <table style="width:100%; border-collapse: collapse; font-size: 14px;">
+      <thead>
+        <tr style="background:#f8f9fa;">
+          <th style="text-align:left; padding:8px 12px; border-bottom:1px solid #e9ecef;">Date</th>
+          <th style="text-align:right; padding:8px 12px; border-bottom:1px solid #e9ecef;">Total</th>
+          <th style="text-align:right; padding:8px 12px; border-bottom:1px solid #e9ecef;">Inbound</th>
+          <th style="text-align:right; padding:8px 12px; border-bottom:1px solid #e9ecef;">Outbound</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${dayRows || '<tr><td colspan="4" style="padding:8px 12px;">No data available.</td></tr>'}
+      </tbody>
+    </table>
+    <p style="margin-top:16px;">The full report is attached as a PDF.</p>
+  `;
+
+  return baseEmailTemplate(content, 'Landlord Report');
+};

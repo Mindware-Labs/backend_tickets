@@ -1,6 +1,14 @@
-import { Ticket } from 'src/ticket/entities/ticket.entity';
+import { Ticket } from '../../ticket/entities/ticket.entity';
 import { Campaign } from '../../campaign/entities/campaign.entity';
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  OneToMany,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
+import { Landlord } from 'src/landlords/entities/landlord.entity';
 
 export enum YardType {
   SAAS = 'SAAS',
@@ -39,9 +47,17 @@ export class Yard {
   @Column()
   isActive: boolean;
 
+  @Column({ nullable: true })
+  landlordId?: number | null;
+
+  @ManyToOne(() => Landlord, (landlord) => landlord.yards, { nullable: true })
+  @JoinColumn({ name: 'landlordId' })
+  landlord?: Landlord | null;
+
   @OneToMany(() => Campaign, (campaign) => campaign.yarda)
   campaigns: Campaign[];
 
   @OneToMany(() => Ticket, (ticket) => ticket.yard)
   tickets: Ticket[];
+
 }

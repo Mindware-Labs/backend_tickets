@@ -10,16 +10,10 @@ import {
   JoinTable,
   OneToOne,
 } from 'typeorm';
-import { User } from '../../auth/entities/user.entity';
 import { Customer } from '../../customers/entities/customer.entity';
 import { Agent } from '../../agents/entities/agent.entity';
-import { Yard } from 'src/yards/entities/yard.entity';
-
-export enum ManagementType {
-  ONBOARDING = 'ONBOARDING',
-  AR = 'AR',
-  OTHER = 'OTHER',
-}
+import { Yard } from '../../yards/entities/yard.entity';
+import { Campaign } from '../../campaign/entities/campaign.entity';
 
 export enum TicketStatus {
   OPEN = 'OPEN',
@@ -59,10 +53,9 @@ export enum ContactSource {
 }
 
 export enum OnboardingOption {
-  NOT_REGISTER = 'NOT_REGISTER',
-  REGISTER = 'REGISTER',
+  NOT_REGISTER = 'NOT_REGISTERED',
+  REGISTER = 'REGISTERED',
   PAID_WITH_LL = 'PAID_WITH_LL',
-  CANCELLED = 'CANCELLED',
 }
 
 @Entity('tickets')
@@ -106,11 +99,16 @@ export class Ticket {
 
   // Campaign
   @Column({
-    type: 'enum',
-    enum: ManagementType,
+    type: 'int',
     nullable: true,
   })
-  campaign?: ManagementType;
+  campaignId?: number;
+
+  @ManyToOne(() => Campaign, (campaing) => campaing.tickets, {
+    eager: true,
+    nullable: true,
+  })
+  campaign?: Campaign;
 
   @ManyToOne(() => Agent, { nullable: true })
   @JoinColumn({ name: 'agentId' })
@@ -140,7 +138,11 @@ export class Ticket {
   duration?: number;
 
   // Issue detail (entered manually by the agent)
-  @Column({ type: 'text', nullable: true, comment: 'Entered manually by the agent' })
+  @Column({
+    type: 'text',
+    nullable: true,
+    comment: 'Entered manually by the agent',
+  })
   issueDetail?: string;
 
   // Attachment (entered manually by the agent)
@@ -156,7 +158,8 @@ export class Ticket {
     type: 'enum',
     enum: OnboardingOption,
     nullable: true,
-    comment: 'Only applies when campaign is ONBOARDING. Entered manually by the agent.',
+    comment:
+      'Only applies when campaign is ONBOARDING. Entered manually by the agent.',
   })
   onboardingOption?: OnboardingOption;
 

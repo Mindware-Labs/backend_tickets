@@ -5,9 +5,10 @@ import { TicketController } from './ticket.controller';
 import { Ticket } from './entities/ticket.entity';
 import { Yard } from '../yards/entities/yard.entity';
 import { Customer } from '../customers/entities/customer.entity';
+import { Campaign } from '../campaign/entities/campaign.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Ticket, Yard, Customer])],
+  imports: [TypeOrmModule.forFeature([Ticket, Yard, Customer, Campaign])],
   controllers: [TicketController],
   providers: [TicketService],
   exports: [TicketService],

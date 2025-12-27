@@ -1,3 +1,4 @@
+import { Ticket } from 'src/ticket/entities/ticket.entity';
 import { Yard } from '../../yards/entities/yard.entity';
 import {
   Column,
@@ -6,6 +7,7 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   ManyToOne,
+  OneToMany,
 } from 'typeorm';
 
 export enum CampaignType {
@@ -45,4 +47,10 @@ export class Campaign {
 
   @UpdateDateColumn()
   updatedAt: Date;
+
+  //@OneToMany(() => Yard, (yard) => yard.campaign)
+  //yards: Yard[];
+
+  @OneToMany(() => Ticket, (ticket) => ticket.campaign)
+  tickets: Ticket[];
 }

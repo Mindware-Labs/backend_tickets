@@ -15,6 +15,11 @@ interface EmailOptions {
     subject: string;
     html: string;
     text?: string;
+    attachments?: Array<{
+        filename: string;
+        content: Buffer;
+        contentType?: string;
+    }>;
 }
 
 @Injectable()
@@ -74,6 +79,7 @@ export class EmailService {
             subject: options.subject,
             html: options.html,
             text: options.text,
+            attachments: options.attachments,
             // Headers to reduce spam flags and improve delivery
             // Note: Do not use 'Auto-Submitted' since Gmail treats it as a notification
             headers: {
@@ -207,6 +213,26 @@ export class EmailService {
             subject: '🔐 Verify Your Account - Ticketing System',
             html,
             text: `Hi ${userName}, please verify your account using the following code: ${verificationCode}. This code expires in 15 minutes.`,
+        });
+    }
+
+    async sendLandlordReportEmail(
+        to: string,
+        subject: string,
+        html: string,
+        pdf: Buffer,
+    ) {
+        return this.sendEmail({
+            to,
+            subject,
+            html,
+            attachments: [
+                {
+                    filename: 'landlord-report.pdf',
+                    content: pdf,
+                    contentType: 'application/pdf',
+                },
+            ],
         });
     }
 }

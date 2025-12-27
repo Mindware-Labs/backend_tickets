@@ -76,7 +76,7 @@ export class ReportsService {
     );
 
     const campaignBreakdown = this.buildBreakdown(
-      tickets.map((ticket) => ticket.campaign || 'UNSPECIFIED'),
+      tickets.map((ticket) => ticket.campaign?.nombre || 'UNSPECIFIED'),
       CAMPAIGN_LABELS,
     );
 

@@ -6,6 +6,7 @@ import { UpdateTicketDto } from './dto/update-ticket.dto';
 import { Ticket } from './entities/ticket.entity';
 import { Yard } from '../yards/entities/yard.entity';
 import { Customer } from '../customers/entities/customer.entity';
+import { Campaign } from '../campaign/entities/campaign.entity';
 
 @Injectable()
 export class TicketService {
@@ -18,7 +19,10 @@ export class TicketService {
 
     @InjectRepository(Customer)
     private readonly customerRepository: Repository<Customer>,
-  ) { }
+
+    @InjectRepository(Campaign)
+    private readonly campaignRepository: Repository<Campaign>,
+  ) {}
 
   async create(createTicketDto: CreateTicketDto, createdByUserId: number) {
     const ticketData = createTicketDto;
@@ -39,6 +43,16 @@ export class TicketService {
     if (!customer) {
       throw new NotFoundException(
         `Customer with ID ${createTicketDto.customerId} not found`,
+      );
+    }
+
+    const campaign = await this.campaignRepository.findOneBy({
+      id: createTicketDto.campaignId,
+    });
+
+    if (!campaign) {
+      throw new NotFoundException(
+        `Campaign with ID ${createTicketDto.campaignId} not found`,
       );
     }
 
@@ -118,6 +132,20 @@ export class TicketService {
         );
       }
       ticket.customer = customer;
+    }
+
+    if (updateTicketDto.campaignId) {
+      const campaign = await this.campaignRepository.findOneBy({
+        id: updateTicketDto.campaignId,
+      });
+
+      if (!campaign) {
+        throw new NotFoundException(
+          `Campaign with ID ${updateTicketDto.campaignId} not found`,
+        );
+      }
+
+      ticket.campaign = campaign;
     }
 
     Object.assign(ticket, ticketData);

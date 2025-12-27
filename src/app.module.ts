@@ -16,6 +16,7 @@ import { YardsModule } from './yards/yards.module';
 import { KnowledgeModule } from './knowledge/knowledge.module';
 import { PoliciesModule } from './policies/policies.module';
 import { ReportsModule } from './reports/reports.module';
+import { LandlordsModule } from './landlords/landlords.module';
 
 @Module({
   imports: [
@@ -43,6 +44,7 @@ import { ReportsModule } from './reports/reports.module';
     KnowledgeModule,
     PoliciesModule,
     ReportsModule,
+    LandlordsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
