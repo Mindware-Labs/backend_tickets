@@ -31,9 +31,6 @@ export class AircallService {
     '13054130294', // Rig Hut - Main Office Number
     '18558601514', // Rig Hut - Toll Free Number
   ]);
-  private readonly onboardingLineNumbers = new Set([
-    '17864537888', // Rig Hut – Onboard and Support
-  ]);
 
   constructor(
     @InjectRepository(WebhookEvent)
@@ -47,9 +44,9 @@ export class AircallService {
   ) {}
 
   /**
-   Procesa un webhook de Aircall:
-   Guarda el evento en webhook_events
-   Crea directamente el ticket desde la llamada
+   Processes an Aircall webhook:
+   Saves the event in webhook_events
+   Creates the ticket directly from the call
    */
   async ingest(payload: AircallWebhookDto): Promise<void> {
     this.logger.log(`Received webhook event: ${payload.event || 'UNKNOWN'}`);
@@ -98,7 +95,7 @@ export class AircallService {
       return;
     }
 
-    // Solo crear ticket cuando la llamada termina
+    // Only create a ticket when the call ends
     if (eventType !== 'call.ended') {
       this.logger.log(
         `Skipping ticket creation for event type: ${eventType}. Only processing call.ended events.`,
@@ -128,8 +125,8 @@ export class AircallService {
 
       const direction = this.mapDirection(data.direction);
 
-      // fromNumber: quien llamó
-      // inbound: quien recibió
+      // fromNumber: caller
+      // inboundNumber: recipient
       let fromNumber: string;
       let inboundNumber: string;
 
@@ -159,12 +156,7 @@ export class AircallService {
         return;
       }
 
-      const isCurrentCallOnboarding =
-        matchedLine && this.onboardingLineNumbers.has(matchedLine);
-
-      this.logger.log(
-        `Inbound number: ${inboundNumber}, Current call is onboarding: ${isCurrentCallOnboarding}`,
-      );
+      this.logger.log(`Inbound number: ${inboundNumber}`);
 
       let customer = await this.customerRepo.findOne({
         where: { phone: phoneNumber },
@@ -183,7 +175,7 @@ export class AircallService {
         customer = this.customerRepo.create({
           name: fullName,
           phone: phoneNumber,
-          isOnBoarding: !!isCurrentCallOnboarding,
+          isOnBoarding: false,
         });
         await this.customerRepo.save(customer);
       }
@@ -210,10 +202,6 @@ export class AircallService {
       const count = await this.ticketRepo.count();
       const ticketNumber = `#${(count + 1).toString().padStart(4, '0')}`;
 
-      const campaignValue = isCurrentCallOnboarding
-        ? ManagementType.ONBOARDING
-        : undefined;
-
       const ticketData: Partial<Ticket> = {
         customerId: customer.id,
         customerPhone: phoneNumber,
@@ -224,7 +212,7 @@ export class AircallService {
 
         direction: direction as CallDirection,
 
-        campaign: campaignValue,
+        campaign: undefined,
 
         agentId: agentId,
 
@@ -245,7 +233,7 @@ export class AircallService {
 
       await this.ticketRepo.save(ticket);
       this.logger.log(
-        `Ticket ${ticketNumber} created successfully from Aircall webhook ${data.id} (campaign: ${campaignValue}, isCurrentCallOnboarding: ${isCurrentCallOnboarding})`,
+        `Ticket ${ticketNumber} created successfully from Aircall webhook ${data.id}`,
       );
     } catch (error) {
       this.logger.error(

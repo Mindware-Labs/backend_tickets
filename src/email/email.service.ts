@@ -30,14 +30,14 @@ export class EmailService {
         const user = this.configService.get<string>('EMAIL_USER');
         const pass = this.configService.get<string>('EMAIL_PASSWORD');
 
-        // Asegurar que el formato del remitente sea correcto
+        // Ensure the sender format is correct
         const emailFrom = this.configService.get<string>('EMAIL_FROM');
         if (emailFrom) {
-            // Si ya tiene formato correcto, usarlo
-            this.fromEmail = emailFrom.includes('<') ? emailFrom : `"Sistema de Tickets" <${emailFrom}>`;
+            // If it already has the correct format, use it
+            this.fromEmail = emailFrom.includes('<') ? emailFrom : `"Ticketing System" <${emailFrom}>`;
         } else {
-            // Si no está configurado, usar el EMAIL_USER como fallback
-            this.fromEmail = user ? `"Sistema de Tickets" <${user}>` : '"Sistema de Tickets" <noreply@tickets.com>';
+            // If not configured, use EMAIL_USER as a fallback
+            this.fromEmail = user ? `"Ticketing System" <${user}>` : '"Ticketing System" <noreply@tickets.com>';
         }
         this.frontendUrl =
             this.configService.get<string>('FRONTEND_URL') || 'http://localhost:3000';
@@ -56,11 +56,11 @@ export class EmailService {
                 user: user,
                 pass: pass,
             },
-            // Configuración adicional para mejorar la entrega
+            // Additional settings to improve delivery
             tls: {
                 rejectUnauthorized: false,
             },
-            // Timeout aumentado para evitar errores
+            // Increased timeouts to reduce errors
             connectionTimeout: 10000,
             greetingTimeout: 10000,
             socketTimeout: 10000,
@@ -74,20 +74,20 @@ export class EmailService {
             subject: options.subject,
             html: options.html,
             text: options.text,
-            // Headers para evitar spam y mejorar la entrega
-            // Nota: No usar 'Auto-Submitted' ya que hace que Gmail lo trate como notificación
+            // Headers to reduce spam flags and improve delivery
+            // Note: Do not use 'Auto-Submitted' since Gmail treats it as a notification
             headers: {
                 'X-Priority': '1',
                 'X-MSMail-Priority': 'High',
                 'Importance': 'high',
-                'X-Mailer': 'Sistema de Tickets',
+                'X-Mailer': 'Ticketing System',
                 'MIME-Version': '1.0',
                 'X-Auto-Response-Suppress': 'All',
             },
-            // Configuración adicional para mejorar la entrega
+            // Additional settings to improve delivery
             priority: 'high' as 'high' | 'normal' | 'low',
             date: new Date(),
-            // Reply-To debe ser el mismo que el remitente para evitar problemas
+            // Reply-To should match the sender to avoid issues
             replyTo: this.fromEmail,
         };
 
@@ -100,12 +100,12 @@ export class EmailService {
         } catch (error: any) {
             this.logger.error(`Error sending email to ${options.to}`, error);
             
-            // Detectar errores específicos de Gmail
+            // Detect specific Gmail errors
             if (error.responseCode === 550 || error.code === 'EENVELOPE' || 
                 (error.message && error.message.includes('550'))) {
                 const errorMessage = error.message || '';
                 if (errorMessage.includes('does not exist') || errorMessage.includes('NoSuchUser')) {
-                    throw new Error(`La dirección de email ${options.to} no existe o no puede recibir correos. Por favor verifica que la dirección sea correcta.`);
+                    throw new Error(`The email address ${options.to} does not exist or cannot receive emails. Please verify that the address is correct.`);
                 }
             }
             
@@ -118,9 +118,9 @@ export class EmailService {
 
         return this.sendEmail({
             to,
-            subject: '🔐 Restablecimiento de Contraseña - Sistema de Tickets',
+            subject: '🔐 Password Reset - Ticketing System',
             html,
-            text: `Hola${userName ? ' ' + userName : ''}, has solicitado restablecer tu contraseña. Usa el siguiente codigo: ${resetCode}. Este codigo expira en 10 minutos.`,
+            text: `Hi${userName ? ' ' + userName : ''}, you requested a password reset. Use the following code: ${resetCode}. This code expires in 10 minutes.`,
         });
     }
 
@@ -130,9 +130,9 @@ export class EmailService {
 
         return this.sendEmail({
             to,
-            subject: '🎉 ¡Bienvenido a Sistema de Tickets!',
+            subject: '🎉 Welcome to Ticketing System!',
             html,
-            text: `¡Bienvenido ${userName}! Tu cuenta ha sido creada exitosamente. Accede al sistema en: ${loginLink}`,
+            text: `Welcome ${userName}! Your account has been created successfully. Access the system at: ${loginLink}`,
         });
     }
 
@@ -152,9 +152,9 @@ export class EmailService {
 
         return this.sendEmail({
             to,
-            subject: `🎫 Ticket #${ticketId} Creado - ${ticketTitle}`,
+            subject: `🎫 Ticket #${ticketId} Created - ${ticketTitle}`,
             html,
-            text: `Hola ${customerName}, tu ticket #${ticketId} ha sido creado. Título: ${ticketTitle}. Ver en: ${ticketLink}`,
+            text: `Hi ${customerName}, your ticket #${ticketId} has been created. Title: ${ticketTitle}. View at: ${ticketLink}`,
         });
     }
 
@@ -178,9 +178,9 @@ export class EmailService {
 
         return this.sendEmail({
             to,
-            subject: `🔔 Actualización del Ticket #${ticketId}`,
+            subject: `🔔 Ticket Update #${ticketId}`,
             html,
-            text: `Hola ${customerName}, tu ticket #${ticketId} ha sido actualizado. Estado: ${status}. Mensaje: ${updateMessage}. Ver en: ${ticketLink}`,
+            text: `Hi ${customerName}, your ticket #${ticketId} has been updated. Status: ${status}. Message: ${updateMessage}. View at: ${ticketLink}`,
         });
     }
 
@@ -189,9 +189,9 @@ export class EmailService {
 
         return this.sendEmail({
             to,
-            subject: '✓ Contraseña Cambiada Exitosamente',
+            subject: '✓ Password Changed Successfully',
             html,
-            text: `Hola ${userName}, tu contraseña ha sido cambiada exitosamente. Si no realizaste este cambio, contacta inmediatamente a soporte.`,
+            text: `Hi ${userName}, your password has been changed successfully. If you did not make this change, contact support immediately.`,
         });
     }
 
@@ -204,9 +204,9 @@ export class EmailService {
 
         return this.sendEmail({
             to,
-            subject: '🔐 Verifica tu Cuenta - Sistema de Tickets',
+            subject: '🔐 Verify Your Account - Ticketing System',
             html,
-            text: `Hola ${userName}, por favor verifica tu cuenta usando el siguiente codigo: ${verificationCode}. Este codigo expirara en 15 minutos.`,
+            text: `Hi ${userName}, please verify your account using the following code: ${verificationCode}. This code expires in 15 minutes.`,
         });
     }
 }

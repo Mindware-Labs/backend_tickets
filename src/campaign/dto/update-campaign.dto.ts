@@ -15,8 +15,8 @@ import { Transform } from 'class-transformer';
 
 export class UpdateCampaignDto extends PartialType(CreateCampaignDto) {
   @ApiProperty({
-    description: 'Nombre de la campaña',
-    example: 'Campaña de Verano 2024',
+    description: 'Campaign name',
+    example: 'Summer Campaign 2024',
     required: false,
   })
   @IsNotEmpty({ message: 'Name should not be empty' })
@@ -25,7 +25,7 @@ export class UpdateCampaignDto extends PartialType(CreateCampaignDto) {
   nombre?: string;
 
   @ApiProperty({
-    description: 'ID del patio/yard asociado (opcional)',
+    description: 'Associated yard ID (optional)',
     example: 1,
     required: false,
   })
@@ -35,7 +35,7 @@ export class UpdateCampaignDto extends PartialType(CreateCampaignDto) {
   yardaId?: number;
 
   @ApiProperty({
-    description: 'Duración de la campaña en días (opcional)',
+    description: 'Campaign duration in days (optional)',
     example: 30,
     required: false,
   })
@@ -44,7 +44,7 @@ export class UpdateCampaignDto extends PartialType(CreateCampaignDto) {
   duracion?: string;
 
   @ApiProperty({
-    description: 'Tipo de campaña',
+    description: 'Campaign type',
     enum: CampaignType,
     example: CampaignType.ONBOARDING,
     required: false,
@@ -56,7 +56,7 @@ export class UpdateCampaignDto extends PartialType(CreateCampaignDto) {
   tipo?: CampaignType;
 
   @ApiProperty({
-    description: 'Indica si la campaña está activa (opcional)',
+    description: 'Indicates whether the campaign is active (optional)',
     example: true,
     required: false,
   })

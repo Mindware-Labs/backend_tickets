@@ -49,15 +49,15 @@ export class KnowledgeController {
   constructor(private readonly knowledgeService: KnowledgeService) {}
 
   @Post()
-  @ApiOperation({ summary: 'Crear un nuevo artículo de conocimiento' })
+  @ApiOperation({ summary: 'Create a new knowledge article' })
   @ApiBody({ type: CreateKnowledgeDto })
   @ApiResponse({
     status: 201,
-    description: 'Artículo de conocimiento creado exitosamente',
+    description: 'Knowledge article created successfully',
   })
   @ApiResponse({
     status: 400,
-    description: 'Datos inválidos',
+    description: 'Invalid data',
   })
   create(@Body() createKnowledgeDto: CreateKnowledgeDto) {
     return this.knowledgeService.create(createKnowledgeDto);
@@ -69,7 +69,7 @@ export class KnowledgeController {
   )
   @ApiConsumes('multipart/form-data')
   @ApiOperation({
-    summary: 'Crear un nuevo artículo de conocimiento con archivo',
+    summary: 'Create a new knowledge article with file',
   })
   @ApiBody({
     schema: {
@@ -84,7 +84,7 @@ export class KnowledgeController {
   })
   @ApiResponse({
     status: 201,
-    description: 'Artículo de conocimiento creado exitosamente',
+    description: 'Knowledge article created successfully',
   })
   async createWithFile(
     @Body() createKnowledgeDto: CreateKnowledgeDto,
@@ -104,12 +104,12 @@ export class KnowledgeController {
   }
 
   @Get()
-  @ApiOperation({ summary: 'Obtener todos los artículos de conocimiento' })
+  @ApiOperation({ summary: 'Get all knowledge articles' })
   @ApiQuery({ name: 'page', required: false, type: Number, example: 1 })
   @ApiQuery({ name: 'limit', required: false, type: Number, example: 10 })
   @ApiResponse({
     status: 200,
-    description: 'Lista de artículos de conocimiento obtenida exitosamente',
+    description: 'Knowledge articles list retrieved successfully',
   })
   findAll(
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
@@ -119,43 +119,43 @@ export class KnowledgeController {
   }
 
   @Get(':id')
-  @ApiOperation({ summary: 'Obtener un artículo de conocimiento por ID' })
+  @ApiOperation({ summary: 'Get a knowledge article by ID' })
   @ApiParam({
     name: 'id',
-    description: 'ID del artículo de conocimiento',
+    description: 'Knowledge article ID',
     type: Number,
   })
   @ApiResponse({
     status: 200,
-    description: 'Artículo de conocimiento encontrado exitosamente',
+    description: 'Knowledge article found successfully',
   })
   @ApiResponse({
     status: 404,
-    description: 'Artículo de conocimiento no encontrado',
+    description: 'Knowledge article not found',
   })
   findOne(@Param('id', IdValidationPipe) id: string) {
     return this.knowledgeService.findOne(+id);
   }
 
   @Patch(':id')
-  @ApiOperation({ summary: 'Actualizar un artículo de conocimiento' })
+  @ApiOperation({ summary: 'Update a knowledge article' })
   @ApiParam({
     name: 'id',
-    description: 'ID del artículo de conocimiento',
+    description: 'Knowledge article ID',
     type: Number,
   })
   @ApiBody({ type: UpdateKnowledgeDto })
   @ApiResponse({
     status: 200,
-    description: 'Artículo de conocimiento actualizado exitosamente',
+    description: 'Knowledge article updated successfully',
   })
   @ApiResponse({
     status: 404,
-    description: 'Artículo de conocimiento no encontrado',
+    description: 'Knowledge article not found',
   })
   @ApiResponse({
     status: 400,
-    description: 'Datos inválidos',
+    description: 'Invalid data',
   })
   update(
     @Param('id', IdValidationPipe) id: string,
@@ -170,11 +170,11 @@ export class KnowledgeController {
   )
   @ApiConsumes('multipart/form-data')
   @ApiOperation({
-    summary: 'Actualizar un artículo de conocimiento con archivo',
+    summary: 'Update a knowledge article with file',
   })
   @ApiParam({
     name: 'id',
-    description: 'ID del artículo de conocimiento',
+    description: 'Knowledge article ID',
     type: Number,
   })
   @ApiBody({
@@ -206,15 +206,15 @@ export class KnowledgeController {
   }
 
   @Get(':id/download')
-  @ApiOperation({ summary: 'Descargar archivo del artículo de conocimiento' })
+  @ApiOperation({ summary: 'Download knowledge article file' })
   @ApiParam({
     name: 'id',
-    description: 'ID del artículo de conocimiento',
+    description: 'Knowledge article ID',
     type: Number,
   })
   @ApiResponse({
     status: 200,
-    description: 'Archivo descargado exitosamente',
+    description: 'File downloaded successfully',
   })
   async downloadFile(
     @Param('id', IdValidationPipe) id: string,
@@ -242,19 +242,19 @@ export class KnowledgeController {
   }
 
   @Delete(':id')
-  @ApiOperation({ summary: 'Eliminar un artículo de conocimiento' })
+  @ApiOperation({ summary: 'Delete a knowledge article' })
   @ApiParam({
     name: 'id',
-    description: 'ID del artículo de conocimiento',
+    description: 'Knowledge article ID',
     type: Number,
   })
   @ApiResponse({
     status: 200,
-    description: 'Artículo de conocimiento eliminado exitosamente',
+    description: 'Knowledge article deleted successfully',
   })
   @ApiResponse({
     status: 404,
-    description: 'Artículo de conocimiento no encontrado',
+    description: 'Knowledge article not found',
   })
   remove(@Param('id', IdValidationPipe) id: string) {
     return this.knowledgeService.remove(+id);

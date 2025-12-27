@@ -89,7 +89,7 @@ export class Ticket {
   @Column({ nullable: true })
   customerPhone?: string;
 
-  // Disposition (Manual por el agente)
+  // Disposition (entered manually by the agent)
   @Column({
     type: 'enum',
     enum: TicketDisposition,
@@ -97,7 +97,7 @@ export class Ticket {
   })
   disposition?: TicketDisposition;
 
-  // Direction (si es recibida o llamada)
+  // Direction (inbound or outbound call)
   @Column({
     type: 'enum',
     enum: CallDirection,
@@ -136,31 +136,31 @@ export class Ticket {
   @Column({ nullable: true })
   aircallId?: string;
 
-  @Column({ nullable: true, comment: 'Duración de la llamada en segundos' })
+  @Column({ nullable: true, comment: 'Call duration in seconds' })
   duration?: number;
 
-  // Issue detail (Manual por el agente)
-  @Column({ type: 'text', nullable: true, comment: 'Manual por el agente' })
+  // Issue detail (entered manually by the agent)
+  @Column({ type: 'text', nullable: true, comment: 'Entered manually by the agent' })
   issueDetail?: string;
 
-  // Attachment (Manual por el agente)
+  // Attachment (entered manually by the agent)
   @Column({
     type: 'simple-json',
     nullable: true,
-    comment: 'Manual por el agente',
+    comment: 'Entered manually by the agent',
   })
   attachments?: string[];
 
-  // Onboarding Option (solo cuando campaign es ONBOARDING)
+  // Onboarding Option (only when campaign is ONBOARDING)
   @Column({
     type: 'enum',
     enum: OnboardingOption,
     nullable: true,
-    comment: 'Solo aplica cuando campaign es ONBOARDING. Manual por el agente.',
+    comment: 'Only applies when campaign is ONBOARDING. Entered manually by the agent.',
   })
   onboardingOption?: OnboardingOption;
 
-  // Fecha creado
+  // Created date
   @CreateDateColumn()
   createdAt: Date;
 

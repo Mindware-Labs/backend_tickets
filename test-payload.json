@@ -15,7 +15,7 @@
     "to": "+34987654321",
     "user": {
       "id": 1,
-      "name": "Juan Pérez",
+      "name": "Juan Perez",
       "email": "juan@example.com"
     },
     "recording": "https://api.aircall.io/recordings/abc123.mp3"

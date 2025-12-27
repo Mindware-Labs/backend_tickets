@@ -3,7 +3,7 @@ import { ApiProperty } from '@nestjs/swagger';
 
 export class ResetPasswordDto {
   @ApiProperty({
-    description: 'Token de recuperación recibido por email (legacy)',
+    description: 'Recovery token received by email (legacy)',
     example: 'abc123xyz789',
     required: false,
   })
@@ -12,7 +12,7 @@ export class ResetPasswordDto {
   token?: string;
 
   @ApiProperty({
-    description: 'Email del usuario (para codigo de 6 digitos)',
+    description: 'User email (for 6-digit code)',
     example: 'user@example.com',
     required: false,
   })
@@ -21,7 +21,7 @@ export class ResetPasswordDto {
   email?: string;
 
   @ApiProperty({
-    description: 'Codigo de 6 digitos recibido por email',
+    description: '6-digit code received by email',
     example: '123456',
     required: false,
   })

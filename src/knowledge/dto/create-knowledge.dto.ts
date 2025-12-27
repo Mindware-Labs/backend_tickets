@@ -4,8 +4,8 @@ import { ApiProperty } from '@nestjs/swagger';
 
 export class CreateKnowledgeDto {
   @ApiProperty({
-    description: 'Nombre del artículo de conocimiento',
-    example: 'Cómo realizar un pedido',
+    description: 'Knowledge article name',
+    example: 'How to place an order',
   })
   @IsNotEmpty({ message: 'Name should not be empty' })
   @IsString({ message: 'Name must be a string' })
@@ -13,8 +13,8 @@ export class CreateKnowledgeDto {
   name: string;
 
   @ApiProperty({
-    description: 'Descripción del artículo de conocimiento',
-    example: 'Guía paso a paso para realizar un pedido en el sistema',
+    description: 'Knowledge article description',
+    example: 'Step-by-step guide to place an order in the system',
   })
   @IsNotEmpty({ message: 'Description should not be empty' })
   @IsString({ message: 'Description must be a string' })
@@ -22,7 +22,7 @@ export class CreateKnowledgeDto {
   description: string;
 
   @ApiProperty({
-    description: 'URL del archivo adjunto',
+    description: 'Attachment file URL',
     example: 'https://example.com/files/guide.pdf',
     required: false,
   })

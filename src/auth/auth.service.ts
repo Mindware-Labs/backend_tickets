@@ -104,17 +104,17 @@ export class AuthService {
         // In development, return the token so user can verify manually
         if (process.env.NODE_ENV === 'development') {
           return {
-            message: `Usuario registrado exitosamente. Sin embargo, la dirección de email ${user.email} no existe o no puede recibir correos. Por favor verifica que la dirección sea correcta. Puedes verificar manualmente usando el codigo de abajo.`,
+            message: `User registered successfully. However, the email address ${user.email} does not exist or cannot receive emails. Please verify that the address is correct. You can verify manually using the code below.`,
             email: user.email,
             verificationCode: verificationCode, // Only in development
-            warning: 'La dirección de email proporcionada no existe. Por favor verifica que sea correcta.',
+            warning: 'The provided email address does not exist. Please verify it is correct.',
           };
         } else {
           // In production, still return success but warn about email
           return {
-            message: `Usuario registrado exitosamente. Sin embargo, no pudimos enviar el correo de verificación a ${user.email}. Por favor verifica que la dirección de email sea correcta y contacta al administrador si necesitas ayuda.`,
+            message: `User registered successfully. However, we could not send the verification email to ${user.email}. Please verify that the email address is correct and contact the administrator if you need help.`,
             email: user.email,
-            warning: 'No se pudo enviar el correo de verificación. Verifica que la dirección de email sea correcta.',
+            warning: 'Unable to send verification email. Verify that the email address is correct.',
           };
         }
       }
@@ -168,10 +168,7 @@ export class AuthService {
 
     const user = await this.userRepository.findOne({ where: { email } });
     if (!user) {
-      return {
-        message:
-          'If the email exists, you will receive a code to reset your password',
-      };
+      throw new BadRequestException('Email not found');
     }
 
     const resetToken = crypto.randomBytes(32).toString('hex');
@@ -185,7 +182,7 @@ export class AuthService {
     user.resetCodeExpiry = resetCodeExpiry;
     await this.userRepository.save(user);
 
-    // Enviar email
+    // Send email
     await this.emailService.sendPasswordResetEmail(
       user.email,
       resetCode,
@@ -193,8 +190,7 @@ export class AuthService {
     );
 
     return {
-      message:
-        'If the email exists, you will receive a code to reset your password',
+      message: 'Password reset code sent to your email',
       resetToken:
         process.env.NODE_ENV === 'development' ? resetToken : undefined,
       resetCode:

@@ -41,7 +41,7 @@ export class PoliciesController {
   constructor(private readonly policiesService: PoliciesService) {}
 
   @Post()
-  @ApiOperation({ summary: 'Crear una nueva política' })
+  @ApiOperation({ summary: 'Create a new policy' })
   create(@Body() createPolicyDto: CreatePolicyDto) {
     return this.policiesService.create(createPolicyDto);
   }
@@ -51,7 +51,7 @@ export class PoliciesController {
     FileInterceptor('file', { storage: memoryStorage() }),
   )
   @ApiConsumes('multipart/form-data')
-  @ApiOperation({ summary: 'Crear una nueva política con archivo' })
+  @ApiOperation({ summary: 'Create a new policy with file' })
   @ApiBody({
     schema: {
       type: 'object',
@@ -65,7 +65,7 @@ export class PoliciesController {
   })
   @ApiResponse({
     status: 201,
-    description: 'Política creada exitosamente',
+    description: 'Policy created successfully',
   })
   async createWithFile(
     @Body() createPolicyDto: CreatePolicyDto,
@@ -85,7 +85,7 @@ export class PoliciesController {
   }
 
   @Get()
-  @ApiOperation({ summary: 'Obtener todas las políticas con paginación' })
+  @ApiOperation({ summary: 'Get all policies with pagination' })
   @ApiQuery({ name: 'page', required: false, type: Number, example: 1 })
   @ApiQuery({ name: 'limit', required: false, type: Number, example: 10 })
   findAll(
@@ -113,10 +113,10 @@ export class PoliciesController {
     FileInterceptor('file', { storage: memoryStorage() }),
   )
   @ApiConsumes('multipart/form-data')
-  @ApiOperation({ summary: 'Actualizar una política con archivo' })
+  @ApiOperation({ summary: 'Update a policy with file' })
   @ApiParam({
     name: 'id',
-    description: 'ID de la política',
+    description: 'Policy ID',
     type: Number,
   })
   @ApiBody({
@@ -148,15 +148,15 @@ export class PoliciesController {
   }
 
   @Get(':id/download')
-  @ApiOperation({ summary: 'Descargar archivo de la política' })
+  @ApiOperation({ summary: 'Download policy file' })
   @ApiParam({
     name: 'id',
-    description: 'ID de la política',
+    description: 'Policy ID',
     type: Number,
   })
   @ApiResponse({
     status: 200,
-    description: 'Archivo descargado exitosamente',
+    description: 'File downloaded successfully',
   })
   async downloadFile(
     @Param('id', IdValidationPipe) id: string,

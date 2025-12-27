@@ -4,8 +4,8 @@ import { ApiProperty } from '@nestjs/swagger';
 
 export class RegisterDto {
   @ApiProperty({
-    description: 'Nombre del usuario',
-    example: 'Juan',
+    description: 'User first name',
+    example: 'John',
   })
   @IsNotEmpty({ message: 'Name is required' })
   @IsString()
@@ -13,8 +13,8 @@ export class RegisterDto {
   name: string;
 
   @ApiProperty({
-    description: 'Apellido del usuario',
-    example: 'Pérez',
+    description: 'User last name',
+    example: 'Perez',
   })
   @IsNotEmpty({ message: 'Last name is required' })
   @IsString()
@@ -22,8 +22,8 @@ export class RegisterDto {
   lastName: string;
 
   @ApiProperty({
-    description: 'Email del usuario',
-    example: 'juan.perez@example.com',
+    description: 'User email',
+    example: 'john.perez@example.com',
   })
   @IsNotEmpty({ message: 'Email is required' })
   @IsEmail({}, { message: 'Must be a valid email' })
@@ -33,7 +33,7 @@ export class RegisterDto {
   email: string;
 
   @ApiProperty({
-    description: 'Contraseña del usuario (mínimo 6 caracteres)',
+    description: 'User password (minimum 6 characters)',
     example: 'password123',
     minLength: 6,
   })

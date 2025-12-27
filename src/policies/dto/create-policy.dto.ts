@@ -4,8 +4,8 @@ import { ApiProperty } from '@nestjs/swagger';
 
 export class CreatePolicyDto {
   @ApiProperty({
-    description: 'Nombre de la política',
-    example: 'Política de Privacidad',
+    description: 'Policy name',
+    example: 'Privacy Policy',
   })
   @IsNotEmpty({ message: 'Name should not be empty' })
   @IsString({ message: 'Invalid Name format' })
@@ -13,8 +13,8 @@ export class CreatePolicyDto {
   name: string;
 
   @ApiProperty({
-    description: 'Descripción de la política',
-    example: 'Esta política describe cómo manejamos los datos de los usuarios',
+    description: 'Policy description',
+    example: 'This policy describes how we handle user data',
     required: false,
   })
   @IsOptional()
@@ -23,7 +23,7 @@ export class CreatePolicyDto {
   description: string;
 
   @ApiProperty({
-    description: 'URL del archivo de la política',
+    description: 'Policy file URL',
     example: 'https://example.com/files/policy.pdf',
     required: false,
   })

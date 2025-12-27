@@ -2,25 +2,25 @@ import { baseEmailTemplate } from './base.template';
 
 export const passwordResetTemplate = (resetLink: string, userName?: string) => {
   const content = `
-    <h2>Solicitud de Restablecimiento de Contraseña</h2>
+    <h2>Password Reset Request</h2>
     
-    ${userName ? `<p>Hola <strong>${userName}</strong>,</p>` : '<p>Hola,</p>'}
+    ${userName ? `<p>Hi <strong>${userName}</strong>,</p>` : '<p>Hi,</p>'}
     
-    <p>Hemos recibido una solicitud para restablecer la contraseña de tu cuenta. Si no solicitaste este cambio, puedes ignorar este correo de forma segura.</p>
+    <p>We received a request to reset the password for your account. If you did not request this change, you can safely ignore this email.</p>
     
     <div class="info-box">
-      <p><strong>⏰ Este enlace expirará en 1 hora</strong></p>
-      <p>Por razones de seguridad, este enlace solo puede ser usado una vez.</p>
+      <p><strong>⏰ This link will expire in 1 hour</strong></p>
+      <p>For security reasons, this link can only be used once.</p>
     </div>
     
-    <p>Para restablecer tu contraseña, haz clic en el siguiente botón:</p>
+    <p>To reset your password, click the button below:</p>
     
     <div style="text-align: center;">
-      <a href="${resetLink}" class="button">Restablecer Contraseña</a>
+      <a href="${resetLink}" class="button">Reset Password</a>
     </div>
     
     <p style="font-size: 14px; color: #6c757d; margin-top: 20px;">
-      Si el botón no funciona, copia y pega el siguiente enlace en tu navegador:
+      If the button does not work, copy and paste the following link into your browser:
     </p>
     <p style="font-size: 14px; word-break: break-all; color: #667eea;">
       ${resetLink}
@@ -29,70 +29,70 @@ export const passwordResetTemplate = (resetLink: string, userName?: string) => {
     <div class="divider"></div>
     
     <p style="font-size: 14px; color: #6c757d;">
-      <strong>Consejos de seguridad:</strong><br>
-      • Nunca compartas tu contraseña con nadie<br>
-      • Usa una contraseña única y segura<br>
-      • No reutilices contraseñas de otras cuentas
+      <strong>Security tips:</strong><br>
+      • Never share your password with anyone<br>
+      • Use a unique, strong password<br>
+      • Do not reuse passwords from other accounts
     </p>
   `;
 
-  return baseEmailTemplate(content, 'Restablecer Contraseña');
+  return baseEmailTemplate(content, 'Reset Password');
 };
 
 export const passwordResetCodeTemplate = (resetCode: string, userName?: string) => {
   const content = `
-    <h2>Codigo de Restablecimiento de Contraseña</h2>
+    <h2>Password Reset Code</h2>
     
-    ${userName ? `<p>Hola <strong>${userName}</strong>,</p>` : '<p>Hola,</p>'}
+    ${userName ? `<p>Hi <strong>${userName}</strong>,</p>` : '<p>Hi,</p>'}
     
-    <p>Hemos recibido una solicitud para restablecer la contraseña de tu cuenta. Usa el siguiente codigo para continuar. Si no solicitaste este cambio, puedes ignorar este correo.</p>
+    <p>We received a request to reset your account password. Use the following code to continue. If you did not request this change, you can ignore this email.</p>
     
     <div class="info-box" style="text-align: center;">
       <p style="font-size: 20px; font-weight: bold; letter-spacing: 4px; margin: 0;">
         ${resetCode}
       </p>
-      <p style="margin-top: 10px;"><strong>⏰ Este codigo expirara en 10 minutos</strong></p>
+      <p style="margin-top: 10px;"><strong>⏰ This code expires in 10 minutes</strong></p>
     </div>
     
     <div class="divider"></div>
     
     <p style="font-size: 14px; color: #6c757d;">
-      <strong>Consejos de seguridad:</strong><br>
-      • No compartas este codigo con nadie<br>
-      • Usa una contraseña unica y segura<br>
-      • Si no solicitaste el cambio, ignora este correo
+      <strong>Security tips:</strong><br>
+      • Do not share this code with anyone<br>
+      • Use a unique, strong password<br>
+      • If you did not request the change, ignore this email
     </p>
   `;
 
-  return baseEmailTemplate(content, 'Restablecer Contraseña');
+  return baseEmailTemplate(content, 'Reset Password');
 };
 
 export const welcomeEmailTemplate = (userName: string, loginLink?: string) => {
   const content = `
-    <h2>¡Bienvenido a Sistema de Tickets! 🎉</h2>
+    <h2>Welcome to Ticketing System! 🎉</h2>
     
-    <p>Hola <strong>${userName}</strong>,</p>
+    <p>Hi <strong>${userName}</strong>,</p>
     
-    <p>¡Gracias por registrarte! Estamos emocionados de tenerte con nosotros. Tu cuenta ha sido creada exitosamente y ya puedes comenzar a usar nuestro sistema de gestión de tickets.</p>
+    <p>Thanks for signing up! We are excited to have you with us. Your account has been created successfully and you can start using our ticket management system.</p>
     
     <div class="info-box">
-      <p><strong>✓ Tu cuenta está activa</strong></p>
-      <p>Ya puedes acceder a todas las funcionalidades del sistema.</p>
+      <p><strong>✓ Your account is active</strong></p>
+      <p>You now have access to all system features.</p>
     </div>
     
-    <p><strong>¿Qué puedes hacer ahora?</strong></p>
+    <p><strong>What can you do now?</strong></p>
     <ul style="margin: 15px 0; padding-left: 20px; color: #495057;">
-      <li>Crear y gestionar tickets</li>
-      <li>Colaborar con tu equipo</li>
-      <li>Hacer seguimiento de tus solicitudes</li>
-      <li>Acceder a la base de conocimientos</li>
+      <li>Create and manage tickets</li>
+      <li>Collaborate with your team</li>
+      <li>Track your requests</li>
+      <li>Access the knowledge base</li>
     </ul>
     
     ${
       loginLink
         ? `
       <div style="text-align: center;">
-        <a href="${loginLink}" class="button">Acceder al Sistema</a>
+        <a href="${loginLink}" class="button">Access the System</a>
       </div>
     `
         : ''
@@ -101,11 +101,11 @@ export const welcomeEmailTemplate = (userName: string, loginLink?: string) => {
     <div class="divider"></div>
     
     <p style="font-size: 14px; color: #6c757d;">
-      Si necesitas ayuda o tienes alguna pregunta, no dudes en contactarnos. ¡Estamos aquí para ayudarte!
+      If you need help or have any questions, please contact us. We are here to help!
     </p>
   `;
 
-  return baseEmailTemplate(content, 'Bienvenido a Sistema de Tickets');
+  return baseEmailTemplate(content, 'Welcome to Ticketing System');
 };
 
 export const ticketCreatedTemplate = (
@@ -115,25 +115,25 @@ export const ticketCreatedTemplate = (
   ticketLink?: string,
 ) => {
   const content = `
-    <h2>Nuevo Ticket Creado 🎫</h2>
+    <h2>New Ticket Created 🎫</h2>
     
-    <p>Hola <strong>${customerName}</strong>,</p>
+    <p>Hi <strong>${customerName}</strong>,</p>
     
-    <p>Tu ticket ha sido creado exitosamente. Nuestro equipo lo revisará lo antes posible.</p>
+    <p>Your ticket has been created successfully. Our team will review it as soon as possible.</p>
     
     <div class="info-box">
-      <p><strong>ID del Ticket:</strong> #${ticketId}</p>
-      <p><strong>Asunto:</strong> ${ticketTitle}</p>
-      <p><strong>Estado:</strong> Abierto</p>
+      <p><strong>Ticket ID:</strong> #${ticketId}</p>
+      <p><strong>Subject:</strong> ${ticketTitle}</p>
+      <p><strong>Status:</strong> Open</p>
     </div>
     
-    <p>Recibirás actualizaciones automáticas cuando haya cambios en tu ticket.</p>
+    <p>You will receive automatic updates when there are changes to your ticket.</p>
     
     ${
       ticketLink
         ? `
       <div style="text-align: center;">
-        <a href="${ticketLink}" class="button">Ver Ticket</a>
+        <a href="${ticketLink}" class="button">View Ticket</a>
       </div>
     `
         : ''
@@ -142,12 +142,12 @@ export const ticketCreatedTemplate = (
     <div class="divider"></div>
     
     <p style="font-size: 14px; color: #6c757d;">
-      <strong>Tiempo estimado de respuesta:</strong> 24-48 horas<br>
-      Puedes hacer seguimiento de tu ticket en cualquier momento.
+      <strong>Estimated response time:</strong> 24-48 hours<br>
+      You can track your ticket at any time.
     </p>
   `;
 
-  return baseEmailTemplate(content, 'Ticket Creado');
+  return baseEmailTemplate(content, 'Ticket Created');
 };
 
 export const ticketUpdatedTemplate = (
@@ -159,29 +159,29 @@ export const ticketUpdatedTemplate = (
   ticketLink?: string,
 ) => {
   const statusColors: Record<string, string> = {
-    abierto: '#28a745',
-    en_progreso: '#ffc107',
-    resuelto: '#17a2b8',
-    cerrado: '#6c757d',
+    open: '#28a745',
+    in_progress: '#ffc107',
+    resolved: '#17a2b8',
+    closed: '#6c757d',
   };
 
   const statusColor = statusColors[status.toLowerCase()] || '#667eea';
 
   const content = `
-    <h2>Actualización de Ticket 🔔</h2>
+    <h2>Ticket Update 🔔</h2>
     
-    <p>Hola <strong>${customerName}</strong>,</p>
+    <p>Hi <strong>${customerName}</strong>,</p>
     
-    <p>Tu ticket ha sido actualizado. Aquí están los detalles:</p>
+    <p>Your ticket has been updated. Here are the details:</p>
     
     <div class="info-box">
-      <p><strong>ID del Ticket:</strong> #${ticketId}</p>
-      <p><strong>Asunto:</strong> ${ticketTitle}</p>
-      <p><strong>Estado:</strong> <span style="color: ${statusColor}; font-weight: bold;">${status.toUpperCase()}</span></p>
+      <p><strong>Ticket ID:</strong> #${ticketId}</p>
+      <p><strong>Subject:</strong> ${ticketTitle}</p>
+      <p><strong>Status:</strong> <span style="color: ${statusColor}; font-weight: bold;">${status.toUpperCase()}</span></p>
     </div>
     
     <div style="background-color: #f8f9fa; padding: 20px; border-radius: 6px; margin: 20px 0;">
-      <p style="margin: 0; color: #212529;"><strong>Actualización:</strong></p>
+      <p style="margin: 0; color: #212529;"><strong>Update:</strong></p>
       <p style="margin: 10px 0 0 0; color: #495057;">${updateMessage}</p>
     </div>
     
@@ -189,46 +189,46 @@ export const ticketUpdatedTemplate = (
       ticketLink
         ? `
       <div style="text-align: center;">
-        <a href="${ticketLink}" class="button">Ver Detalles del Ticket</a>
+        <a href="${ticketLink}" class="button">View Ticket Details</a>
       </div>
     `
         : ''
     }
     
     <p style="font-size: 14px; color: #6c757d; margin-top: 20px;">
-      Gracias por tu paciencia. Seguimos trabajando para resolver tu solicitud.
+      Thank you for your patience. We are continuing to work to resolve your request.
     </p>
   `;
 
-  return baseEmailTemplate(content, 'Actualización de Ticket');
+  return baseEmailTemplate(content, 'Ticket Update');
 };
 
 export const passwordChangedTemplate = (userName: string) => {
   const content = `
-    <h2>Contraseña Cambiada Exitosamente ✓</h2>
+    <h2>Password Changed Successfully ✓</h2>
     
-    <p>Hola <strong>${userName}</strong>,</p>
+    <p>Hi <strong>${userName}</strong>,</p>
     
-    <p>Te confirmamos que la contraseña de tu cuenta ha sido cambiada exitosamente.</p>
+    <p>We confirm that your account password has been changed successfully.</p>
     
     <div class="info-box">
-      <p><strong>Fecha y hora:</strong> ${new Date().toLocaleString('es-ES', {
+      <p><strong>Date and time:</strong> ${new Date().toLocaleString('en-US', {
         dateStyle: 'full',
         timeStyle: 'short',
       })}</p>
     </div>
     
-    <p><strong>Si no realizaste este cambio:</strong></p>
-    <p style="color: #dc3545;">Por favor, contacta inmediatamente a nuestro equipo de soporte. Tu cuenta podría estar comprometida.</p>
+    <p><strong>If you did not make this change:</strong></p>
+    <p style="color: #dc3545;">Please contact our support team immediately. Your account may be compromised.</p>
     
     <div class="divider"></div>
     
     <p style="font-size: 14px; color: #6c757d;">
-      Este es un correo de notificación de seguridad para mantener tu cuenta protegida.
+      This is a security notification email to keep your account protected.
     </p>
   `;
 
-  return baseEmailTemplate(content, 'Contraseña Cambiada');
+  return baseEmailTemplate(content, 'Password Changed');
 };
 
 export const accountVerificationTemplate = (
@@ -236,25 +236,25 @@ export const accountVerificationTemplate = (
   userName: string,
 ) => {
   const content = `
-    <h2>Verificación de Cuenta</h2>
+    <h2>Account Verification</h2>
     
-    <p>Hola <strong>${userName}</strong>,</p>
+    <p>Hi <strong>${userName}</strong>,</p>
     
-    <p>Gracias por registrarte en nuestro Sistema de Tickets. Para completar tu registro y activar tu cuenta, por favor verifica tu correo electrónico haciendo clic en el botón de abajo.</p>
+    <p>Thanks for registering in our Ticketing System. To complete your registration and activate your account, please verify your email by clicking the button below.</p>
     
     <div class="info-box">
-      <p><strong>⏰ Este enlace expirará en 24 horas</strong></p>
-      <p>Por razones de seguridad, este enlace solo puede ser usado una vez.</p>
+      <p><strong>⏰ This link will expire in 24 hours</strong></p>
+      <p>For security reasons, this link can only be used once.</p>
     </div>
     
-    <p>Para verificar tu cuenta, haz clic en el siguiente botón:</p>
+    <p>To verify your account, click the button below:</p>
     
     <div style="text-align: center;">
-      <a href="${verificationLink}" class="button">Verificar Correo Electrónico</a>
+      <a href="${verificationLink}" class="button">Verify Email</a>
     </div>
     
     <p style="font-size: 14px; color: #6c757d; margin-top: 20px;">
-      Si el botón no funciona, copia y pega el siguiente enlace en tu navegador:
+      If the button does not work, copy and paste the following link into your browser:
     </p>
     <p style="font-size: 14px; word-break: break-all; color: #667eea;">
       ${verificationLink}
@@ -263,14 +263,14 @@ export const accountVerificationTemplate = (
     <div class="divider"></div>
     
     <p style="font-size: 14px; color: #6c757d;">
-      <strong>Consejos de seguridad:</strong><br>
-      • No compartas este enlace con nadie<br>
-      • Si no creaste una cuenta, puedes ignorar este correo de forma segura<br>
-      • Una vez verificado, podrás iniciar sesión en el sistema
+      <strong>Security tips:</strong><br>
+      • Do not share this link with anyone<br>
+      • If you did not create an account, you can safely ignore this email<br>
+      • Once verified, you can sign in to the system
     </p>
   `;
 
-  return baseEmailTemplate(content, 'Verificación de Cuenta');
+  return baseEmailTemplate(content, 'Account Verification');
 };
 
 export const accountVerificationCodeTemplate = (
@@ -278,28 +278,28 @@ export const accountVerificationCodeTemplate = (
   userName: string,
 ) => {
   const content = `
-    <h2>Verificacion de Cuenta</h2>
+    <h2>Account Verification</h2>
     
-    <p>Hola <strong>${userName}</strong>,</p>
+    <p>Hi <strong>${userName}</strong>,</p>
     
-    <p>Gracias por registrarte en nuestro Sistema de Tickets. Para completar tu registro, ingresa el siguiente codigo en la pantalla de verificacion.</p>
+    <p>Thanks for registering in our Ticketing System. To complete your registration, enter the following code on the verification screen.</p>
     
     <div class="info-box" style="text-align: center;">
       <p style="font-size: 20px; font-weight: bold; letter-spacing: 4px; margin: 0;">
         ${verificationCode}
       </p>
-      <p style="margin-top: 10px;"><strong>⏰ Este codigo expirara en 15 minutos</strong></p>
+      <p style="margin-top: 10px;"><strong>⏰ This code expires in 15 minutes</strong></p>
     </div>
     
     <div class="divider"></div>
     
     <p style="font-size: 14px; color: #6c757d;">
-      <strong>Consejos de seguridad:</strong><br>
-      • No compartas este codigo con nadie<br>
-      • Si no creaste una cuenta, puedes ignorar este correo<br>
-      • Una vez verificado, podras iniciar sesion en el sistema
+      <strong>Security tips:</strong><br>
+      • Do not share this code with anyone<br>
+      • If you did not create an account, you can ignore this email<br>
+      • Once verified, you can sign in to the system
     </p>
   `;
 
-  return baseEmailTemplate(content, 'Verificacion de Cuenta');
+  return baseEmailTemplate(content, 'Account Verification');
 };

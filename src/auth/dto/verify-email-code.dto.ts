@@ -3,7 +3,7 @@ import { IsEmail, IsNotEmpty, IsString } from 'class-validator';
 
 export class VerifyEmailCodeDto {
   @ApiProperty({
-    description: 'Email del usuario',
+    description: 'User email',
     example: 'user@example.com',
   })
   @IsNotEmpty({ message: 'Email is required' })
@@ -11,7 +11,7 @@ export class VerifyEmailCodeDto {
   email: string;
 
   @ApiProperty({
-    description: 'Codigo de 6 digitos recibido por email',
+    description: '6-digit code received by email',
     example: '123456',
   })
   @IsNotEmpty({ message: 'Code is required' })

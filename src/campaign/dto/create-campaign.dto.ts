@@ -13,8 +13,8 @@ import { Transform } from 'class-transformer';
 
 export class CreateCampaignDto {
   @ApiProperty({
-    description: 'Nombre de la campaña',
-    example: 'Campaña de Verano 2024',
+    description: 'Campaign name',
+    example: 'Summer Campaign 2024',
   })
   @IsNotEmpty({ message: 'Name should not be empty' })
   @IsString({ message: 'Name must be a string' })
@@ -22,8 +22,8 @@ export class CreateCampaignDto {
   nombre: string;
 
   @ApiProperty({
-    description: 'Nombre del patio asociado (opcional)',
-    example: '1',
+    description: 'Associated yard ID (optional)',
+    example: 1,
     required: false,
   })
   @IsOptional()
@@ -32,7 +32,7 @@ export class CreateCampaignDto {
   yardaId?: number;
 
   @ApiProperty({
-    description: 'Duración de la campaña en días (opcional)',
+    description: 'Campaign duration in days (optional)',
     example: 30,
     required: false,
   })
@@ -41,7 +41,7 @@ export class CreateCampaignDto {
   duracion?: string;
 
   @ApiProperty({
-    description: 'Tipo de campaña',
+    description: 'Campaign type',
     enum: CampaignType,
     example: CampaignType.ONBOARDING,
   })
@@ -51,7 +51,7 @@ export class CreateCampaignDto {
   tipo: CampaignType;
 
   @ApiProperty({
-    description: 'Indica si la campaña está activa (opcional)',
+    description: 'Indicates whether the campaign is active (optional)',
     example: true,
     required: false,
   })

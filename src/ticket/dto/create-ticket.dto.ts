@@ -20,25 +20,25 @@ import {
 
 export class CreateTicketDto {
   @ApiProperty({
-    description: 'ID del cliente asociado',
+    description: 'Associated customer ID',
     example: 1,
   })
-  @IsNotEmpty({ message: 'El ID del cliente es requerido' })
+  @IsNotEmpty({ message: 'Customer ID is required' })
   @IsNumber()
   @Min(1)
   customerId: number;
 
   @ApiProperty({
-    description: 'Dirección de la llamada',
+    description: 'Call direction',
     enum: CallDirection,
     example: CallDirection.INBOUND,
   })
-  @IsNotEmpty({ message: 'La dirección es requerida' })
+  @IsNotEmpty({ message: 'Direction is required' })
   @IsEnum(CallDirection)
   direction: CallDirection;
 
   @ApiProperty({
-    description: 'ID del patio/yard asociado (opcional)',
+    description: 'Associated yard ID (optional)',
     example: 1,
     required: false,
   })
@@ -48,7 +48,7 @@ export class CreateTicketDto {
   yardId?: number;
 
   @ApiProperty({
-    description: 'Teléfono del cliente (opcional)',
+    description: 'Customer phone (optional)',
     example: '+1234567890',
     required: false,
   })
@@ -57,7 +57,7 @@ export class CreateTicketDto {
   customerPhone?: string;
 
   @ApiProperty({
-    description: 'Disposición del ticket - Manual por el agente (opcional)',
+    description: 'Ticket disposition - entered manually by the agent (optional)',
     enum: TicketDisposition,
     example: TicketDisposition.BOOKING,
     required: false,
@@ -67,7 +67,7 @@ export class CreateTicketDto {
   disposition?: TicketDisposition;
 
   @ApiProperty({
-    description: 'Campaña - ONBOARDING o AR (opcional)',
+    description: 'Campaign - ONBOARDING or AR (optional)',
     enum: ManagementType,
     example: ManagementType.ONBOARDING,
     required: false,
@@ -77,7 +77,7 @@ export class CreateTicketDto {
   campaign?: ManagementType;
 
   @ApiProperty({
-    description: 'ID del agente asignado (opcional)',
+    description: 'Assigned agent ID (optional)',
     example: 1,
     required: false,
   })
@@ -87,7 +87,7 @@ export class CreateTicketDto {
   agentId?: number;
 
   @ApiProperty({
-    description: 'Estado del ticket (opcional, default: IN_PROGRESS)',
+    description: 'Ticket status (optional, default: IN_PROGRESS)',
     enum: TicketStatus,
     example: TicketStatus.IN_PROGRESS,
     required: false,
@@ -97,7 +97,7 @@ export class CreateTicketDto {
   status?: TicketStatus;
 
   @ApiProperty({
-    description: 'Prioridad del ticket (opcional, default: LOW)',
+    description: 'Ticket priority (optional, default: LOW)',
     enum: TicketPriority,
     example: TicketPriority.MEDIUM,
     required: false,
@@ -107,7 +107,7 @@ export class CreateTicketDto {
   priority?: TicketPriority;
 
   @ApiProperty({
-    description: 'ID de la llamada en Aircall (opcional)',
+    description: 'Aircall call ID (optional)',
     example: 'aircall_123456',
     required: false,
   })
@@ -116,7 +116,7 @@ export class CreateTicketDto {
   aircallId?: string;
 
   @ApiProperty({
-    description: 'Duración de la llamada en segundos (opcional)',
+    description: 'Call duration in seconds (optional)',
     example: 300,
     required: false,
   })
@@ -126,8 +126,8 @@ export class CreateTicketDto {
   duration?: number;
 
   @ApiProperty({
-    description: 'Detalle del problema - Manual por el agente (opcional)',
-    example: 'Cliente necesita ayuda con su reserva',
+    description: 'Issue details - entered manually by the agent (optional)',
+    example: 'Customer needs help with their booking',
     required: false,
   })
   @IsOptional()
@@ -136,7 +136,7 @@ export class CreateTicketDto {
   issueDetail?: string;
 
   @ApiProperty({
-    description: 'URLs de archivos adjuntos - Manual por el agente (opcional)',
+    description: 'Attachment URLs - entered manually by the agent (optional)',
     example: ['https://example.com/file1.pdf', 'https://example.com/file2.jpg'],
     type: [String],
     required: false,
@@ -148,7 +148,7 @@ export class CreateTicketDto {
 
   @ApiProperty({
     description:
-      'Opción de onboarding - Solo aplica cuando campaign es ONBOARDING. Manual por el agente (opcional)',
+      'Onboarding option - only applies when campaign is ONBOARDING. Entered manually by the agent (optional)',
     enum: OnboardingOption,
     example: OnboardingOption.REGISTER,
     required: false,

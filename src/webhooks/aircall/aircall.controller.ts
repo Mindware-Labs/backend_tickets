@@ -28,10 +28,10 @@ export class AircallController {
 
   @Post()
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Recibir webhook de Aircall' })
-  @ApiBody({ type: Object, description: 'Payload del webhook de Aircall' })
-  @ApiResponse({ status: 200, description: 'Webhook procesado exitosamente' })
-  @ApiResponse({ status: 400, description: 'Token inválido' })
+  @ApiOperation({ summary: 'Receive Aircall webhook' })
+  @ApiBody({ type: Object, description: 'Aircall webhook payload' })
+  @ApiResponse({ status: 200, description: 'Webhook processed successfully' })
+  @ApiResponse({ status: 400, description: 'Invalid token' })
   async handleWebhook(@Body() payload: any) {
     this.logger.log(
       `Received Aircall webhook: ${payload?.event || 'undefined'}`,

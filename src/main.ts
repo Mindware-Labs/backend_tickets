@@ -13,7 +13,7 @@ async function bootstrap() {
   });
 
   app.enableCors({
-    origin: '*', // En producción, especifica los dominios permitidos
+    origin: '*', // In production, specify allowed domains
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     credentials: true,
   });
@@ -25,21 +25,21 @@ async function bootstrap() {
     }),
   );
 
-  // Configuración de Swagger
+  // Swagger configuration
   const config = new DocumentBuilder()
     .setTitle('Tickets API')
     .setDescription(
-      'API para gestión de tickets, clientes, campañas, webhooks, yards y conocimiento',
+      'API for managing tickets, customers, campaigns, webhooks, yards, and knowledge base',
     )
     .setVersion('1.0')
     .addBearerAuth()
-    .addTag('auth', 'Autenticación y gestión de usuarios')
-    .addTag('tickets', 'Gestión de tickets')
-    .addTag('customers', 'Gestión de clientes')
-    .addTag('campaigns', 'Gestión de campañas')
-    .addTag('yards', 'Gestión de yards (patios de contenedores)')
-    .addTag('knowledge', 'Gestión de base de conocimiento')
-    .addTag('webhooks', 'Webhooks de integración')
+    .addTag('auth', 'Authentication and user management')
+    .addTag('tickets', 'Ticket management')
+    .addTag('customers', 'Customer management')
+    .addTag('campaigns', 'Campaign management')
+    .addTag('yards', 'Yard management (container yards)')
+    .addTag('knowledge', 'Knowledge base management')
+    .addTag('webhooks', 'Integration webhooks')
     .build();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, document);

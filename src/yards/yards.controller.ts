@@ -25,60 +25,60 @@ export class YardsController {
   constructor(private readonly yardsService: YardsService) {}
 
   @Post()
-  @ApiOperation({ summary: 'Crear un nuevo yard' })
+  @ApiOperation({ summary: 'Create a new yard' })
   @ApiBody({ type: CreateYardDto })
   @ApiResponse({
     status: 201,
-    description: 'Yard creado exitosamente',
+    description: 'Yard created successfully',
   })
   @ApiResponse({
     status: 400,
-    description: 'Datos inválidos',
+    description: 'Invalid data',
   })
   create(@Body() createYardDto: CreateYardDto) {
     return this.yardsService.create(createYardDto);
   }
 
   @Get()
-  @ApiOperation({ summary: 'Obtener todos los yards' })
+  @ApiOperation({ summary: 'Get all yards' })
   @ApiResponse({
     status: 200,
-    description: 'Lista de yards obtenida exitosamente',
+    description: 'Yards list retrieved successfully',
   })
   findAll() {
     return this.yardsService.findAll();
   }
 
   @Get(':id')
-  @ApiOperation({ summary: 'Obtener un yard por ID' })
-  @ApiParam({ name: 'id', description: 'ID del yard', type: Number })
+  @ApiOperation({ summary: 'Get a yard by ID' })
+  @ApiParam({ name: 'id', description: 'Yard ID', type: Number })
   @ApiResponse({
     status: 200,
-    description: 'Yard encontrado exitosamente',
+    description: 'Yard found successfully',
   })
   @ApiResponse({
     status: 404,
-    description: 'Yard no encontrado',
+    description: 'Yard not found',
   })
   findOne(@Param('id', IdValidationPipe) id: string) {
     return this.yardsService.findOne(+id);
   }
 
   @Patch(':id')
-  @ApiOperation({ summary: 'Actualizar un yard' })
-  @ApiParam({ name: 'id', description: 'ID del yard', type: Number })
+  @ApiOperation({ summary: 'Update a yard' })
+  @ApiParam({ name: 'id', description: 'Yard ID', type: Number })
   @ApiBody({ type: UpdateYardDto })
   @ApiResponse({
     status: 200,
-    description: 'Yard actualizado exitosamente',
+    description: 'Yard updated successfully',
   })
   @ApiResponse({
     status: 404,
-    description: 'Yard no encontrado',
+    description: 'Yard not found',
   })
   @ApiResponse({
     status: 400,
-    description: 'Datos inválidos',
+    description: 'Invalid data',
   })
   update(
     @Param('id', IdValidationPipe) id: string,
@@ -88,15 +88,15 @@ export class YardsController {
   }
 
   @Delete(':id')
-  @ApiOperation({ summary: 'Eliminar un yard' })
-  @ApiParam({ name: 'id', description: 'ID del yard', type: Number })
+  @ApiOperation({ summary: 'Delete a yard' })
+  @ApiParam({ name: 'id', description: 'Yard ID', type: Number })
   @ApiResponse({
     status: 200,
-    description: 'Yard eliminado exitosamente',
+    description: 'Yard deleted successfully',
   })
   @ApiResponse({
     status: 404,
-    description: 'Yard no encontrado',
+    description: 'Yard not found',
   })
   remove(@Param('id', IdValidationPipe) id: string) {
     return this.yardsService.remove(+id);

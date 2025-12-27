@@ -26,28 +26,28 @@ export class CustomersController {
   constructor(private readonly customersService: CustomersService) {}
 
   @Post()
-  @ApiOperation({ summary: 'Crear nuevo cliente' })
-  @ApiResponse({ status: 201, description: 'Cliente creado exitosamente' })
-  @ApiResponse({ status: 400, description: 'Datos inválidos' })
+  @ApiOperation({ summary: 'Create a new customer' })
+  @ApiResponse({ status: 201, description: 'Customer created successfully' })
+  @ApiResponse({ status: 400, description: 'Invalid data' })
   create(@Body() createCustomerDto: CreateCustomerDto) {
     return this.customersService.create(createCustomerDto);
   }
 
   @Get()
-  @ApiOperation({ summary: 'Obtener lista de clientes paginada' })
+  @ApiOperation({ summary: 'Get a paginated list of customers' })
   @ApiQuery({
     name: 'page',
     required: false,
     type: Number,
-    description: 'Número de página',
+    description: 'Page number',
   })
   @ApiQuery({
     name: 'limit',
     required: false,
     type: Number,
-    description: 'Cantidad de elementos por página',
+    description: 'Number of items per page',
   })
-  @ApiResponse({ status: 200, description: 'Lista de clientes' })
+  @ApiResponse({ status: 200, description: 'Customer list' })
   findAll(
     @Query('page') page: string = '1',
     @Query('limit') limit: string = '10',
@@ -56,19 +56,19 @@ export class CustomersController {
   }
 
   @Get(':id')
-  @ApiOperation({ summary: 'Obtener cliente por ID' })
-  @ApiParam({ name: 'id', type: Number, description: 'ID del cliente' })
-  @ApiResponse({ status: 200, description: 'Cliente encontrado' })
-  @ApiResponse({ status: 404, description: 'Cliente no encontrado' })
+  @ApiOperation({ summary: 'Get customer by ID' })
+  @ApiParam({ name: 'id', type: Number, description: 'Customer ID' })
+  @ApiResponse({ status: 200, description: 'Customer found' })
+  @ApiResponse({ status: 404, description: 'Customer not found' })
   findOne(@Param('id', IdValidationPipe) id: string) {
     return this.customersService.findOne(+id);
   }
 
   @Patch(':id')
-  @ApiOperation({ summary: 'Actualizar cliente' })
-  @ApiParam({ name: 'id', type: Number, description: 'ID del cliente' })
-  @ApiResponse({ status: 200, description: 'Cliente actualizado' })
-  @ApiResponse({ status: 404, description: 'Cliente no encontrado' })
+  @ApiOperation({ summary: 'Update customer' })
+  @ApiParam({ name: 'id', type: Number, description: 'Customer ID' })
+  @ApiResponse({ status: 200, description: 'Customer updated' })
+  @ApiResponse({ status: 404, description: 'Customer not found' })
   update(
     @Param('id', IdValidationPipe) id: string,
     @Body() updateCustomerDto: UpdateCustomerDto,
@@ -77,10 +77,10 @@ export class CustomersController {
   }
 
   @Delete(':id')
-  @ApiOperation({ summary: 'Eliminar cliente' })
-  @ApiParam({ name: 'id', type: Number, description: 'ID del cliente' })
-  @ApiResponse({ status: 200, description: 'Cliente eliminado' })
-  @ApiResponse({ status: 404, description: 'Cliente no encontrado' })
+  @ApiOperation({ summary: 'Delete customer' })
+  @ApiParam({ name: 'id', type: Number, description: 'Customer ID' })
+  @ApiResponse({ status: 200, description: 'Customer deleted' })
+  @ApiResponse({ status: 404, description: 'Customer not found' })
   remove(@Param('id', IdValidationPipe) id: string) {
     return this.customersService.remove(+id);
   }

@@ -21,112 +21,112 @@
   <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
   [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
 
-## Descripción del Proyecto
+## Project Description
 
-**Tickets API** es un sistema backend robusto para la gestión integral de tickets de soporte y atención al cliente, desarrollado con NestJS y TypeScript. El proyecto proporciona una solución completa para administrar interacciones con clientes, campañas de marketing y seguimiento de llamadas.
+**Tickets API** is a robust backend system for end-to-end support ticket and customer service management, built with NestJS and TypeScript. The project provides a complete solution to manage customer interactions, marketing campaigns, and call tracking.
 
-### Características Principales
+### Key Features
 
-- **🎫 Gestión de Tickets**: Sistema completo CRUD para crear, actualizar y rastrear tickets de soporte con diferentes tipos de gestión (Onboarding, AR), prioridades y estados.
+- **🎫 Ticket Management**: Full CRUD system to create, update, and track support tickets with different management types (Onboarding, AR), priorities, and statuses.
 
-- **👥 Administración de Clientes**: Módulo dedicado para gestionar información de clientes incluyendo datos de contacto, empresas asociadas y patios (yards).
+- **👥 Customer Management**: Dedicated module to manage customer information including contact data, associated companies, and yards.
 
-- **📊 Campañas**: Sistema de gestión de campañas con soporte para diferentes tipos (Onboarding, AR, Other), seguimiento de duración y estado activo/inactivo.
+- **📊 Campaigns**: Campaign management system with support for different types (Onboarding, AR, Other), duration tracking, and active/inactive status.
 
-- **🔐 Autenticación y Seguridad**: Sistema completo de autenticación con JWT incluyendo:
-  - Registro y login de usuarios
-  - Recuperación de contraseña con tokens
-  - Protección de rutas con guards
-  - Roles de usuario
+- **🔐 Authentication and Security**: Complete JWT-based authentication system including:
+  - User registration and login
+  - Password recovery with tokens
+  - Route protection with guards
+  - User roles
 
-- **📞 Integración con Aircall**: Webhook listener para capturar y procesar eventos de llamadas entrantes y salientes desde Aircall, permitiendo tracking automático de interacciones telefónicas.
+- **📞 Aircall Integration**: Webhook listener to capture and process inbound and outbound call events from Aircall, enabling automatic tracking of phone interactions.
 
-- **📚 Documentación API con Swagger**: Documentación interactiva completa de todos los endpoints disponible en `/api`, facilitando la integración y pruebas.
+- **📚 API Documentation with Swagger**: Complete interactive documentation for all endpoints available at `/api`, making integration and testing easier.
 
-### Tecnologías Utilizadas
+### Technologies Used
 
 - **Framework**: NestJS 11.x
-- **Lenguaje**: TypeScript
-- **Base de Datos**: PostgreSQL con TypeORM
-- **Autenticación**: JWT con Passport
-- **Validación**: Class Validator & Class Transformer
-- **Documentación**: Swagger/OpenAPI
-- **Seguridad**: Bcrypt para encriptación de contraseñas
+- **Language**: TypeScript
+- **Database**: PostgreSQL with TypeORM
+- **Authentication**: JWT with Passport
+- **Validation**: Class Validator & Class Transformer
+- **Documentation**: Swagger/OpenAPI
+- **Security**: Bcrypt for password hashing
 
-### Endpoints Disponibles
+### Available Endpoints
 
-- **Auth**: `/auth` - Registro, login, recuperación de contraseña
-- **Tickets**: `/ticket` - CRUD completo de tickets
-- **Clientes**: `/customers` - Gestión de clientes
-- **Campañas**: `/campaign` - Administración de campañas
-- **Webhooks**: `/webhooks/aircall` - Receptor de eventos Aircall
-- **Documentación**: `/api` - Swagger UI
+- **Auth**: `/auth` - Registration, login, password recovery
+- **Tickets**: `/ticket` - Full CRUD for tickets
+- **Customers**: `/customers` - Customer management
+- **Campaigns**: `/campaign` - Campaign management
+- **Webhooks**: `/webhooks/aircall` - Aircall event receiver
+- **Documentation**: `/api` - Swagger UI
 
-## Configuración Inicial
+## Initial Setup
 
-### 1. Instalar dependencias
+### 1. Install dependencies
 
 ```bash
 npm install
 ```
 
-### 2. Configurar variables de entorno
+### 2. Configure environment variables
 
-Copia el archivo `.env.example` a `.env` y configura tus credenciales:
+Copy the `.env.example` file to `.env` and set your credentials:
 
 ```bash
 cp .env.example .env
 ```
 
-Edita `.env` con tus credenciales:
+Edit `.env` with your credentials:
 
-- **Base de datos**: Configura PostgreSQL
-- **Aircall API**: Obtén tus credenciales en [Aircall Dashboard](https://dashboard.aircall.io/company/integrations)
-- **Webhook Token**: Configura el token para validar webhooks
+- **Database**: Configure PostgreSQL
+- **Aircall API**: Get your credentials in the [Aircall Dashboard](https://dashboard.aircall.io/company/integrations)
+- **Webhook Token**: Set the token to validate webhooks
 
-### 3. Configurar Base de Datos
+### 3. Configure the database
 
 ```bash
-# Ejecuta las migraciones (si usas TypeORM migrations)
+# Run migrations (if you use TypeORM migrations)
 npm run migration:run
 ```
 
-### 4. Configurar Webhook en Aircall
+### 4. Configure the Aircall webhook
 
-1. Ve a [Aircall Webhooks](https://dashboard.aircall.io/integrations/webhooks)
-2. Crea un nuevo webhook con:
-   - **URL**: `https://tu-dominio.com/webhooks/aircall`
-   - **Eventos**: Selecciona `call.created`, `call.answered`, `call.ended`, etc.
+1. Go to [Aircall Webhooks](https://dashboard.aircall.io/integrations/webhooks)
+2. Create a new webhook with:
+   - **URL**: `https://your-domain.com/webhooks/aircall`
+   - **Events**: Select `call.created`, `call.answered`, `call.ended`, etc.
 
-**Para desarrollo local con ngrok:**
+**For local development with ngrok:**
 
 ```bash
-# Instala ngrok: https://ngrok.com/download
+# Install ngrok: https://ngrok.com/download
 ngrok http 3000
 
-# Usa la URL de ngrok: https://abc123.ngrok.io/webhooks/aircall
+# Use the ngrok URL: https://abc123.ngrok.io/webhooks/aircall
 ```
 
-## Ejecutar la aplicación
+## Run the application
 
 ```bash
 # development
 npm run start
 
-# watch mode (recomendado para desarrollo)
+# watch mode (recommended for development)
 npm run start:dev
 
 # production mode
 npm run start:prod
 ```
 
-## Probar Webhooks de Aircall
+## Test Aircall Webhooks
 
-### Opción 1: Usando el archivo HTTP
+### Option 1: Using the HTTP file
 
-Abre `test-aircall-webhook.http` en VS Code con la extensión REST Client y ejecuta las peticiones de prueba.
+Open `test-aircall-webhook.http` in VS Code with the REST Client extension and run the test requests.
 
-### Opción 2: Usando cURL
+### Option 2: Using cURL
 
 ```bash
 curl -X POST http://localhost:3000/webhooks/aircall \
@@ -145,19 +145,19 @@ curl -X POST http://localhost:3000/webhooks/aircall \
   }'
 ```
 
-### Opción 3: Con webhooks reales
+### Option 3: With real webhooks
 
-1. Expón tu servidor local con ngrok
-2. Configura la URL en Aircall
-3. Realiza una llamada de prueba en Aircall
+1. Expose your local server with ngrok
+2. Configure the URL in Aircall
+3. Make a test call in Aircall
 
-## Verificar Datos
+## Verify Data
 
 ```sql
--- Ver eventos de webhook recibidos
+-- View received webhook events
 SELECT * FROM webhook_events ORDER BY "receivedAt" DESC LIMIT 10;
 
--- Ver llamadas registradas
+-- View logged calls
 SELECT * FROM calls ORDER BY "createdAt" DESC LIMIT 10;
 ```
 

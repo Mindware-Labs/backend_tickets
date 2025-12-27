@@ -1,6 +1,6 @@
 export const baseEmailTemplate = (content: string, title: string = '') => `
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -110,7 +110,7 @@ export const baseEmailTemplate = (content: string, title: string = '') => `
 <body>
     <div class="email-wrapper">
         <div class="email-header">
-            <h1>Sistema de Tickets</h1>
+            <h1>Ticketing System</h1>
         </div>
         <div class="email-body">
             <div class="content">
@@ -118,8 +118,8 @@ export const baseEmailTemplate = (content: string, title: string = '') => `
             </div>
         </div>
         <div class="email-footer">
-            <p>&copy; ${new Date().getFullYear()} Sistema de Tickets. Todos los derechos reservados.</p>
-            <p>Este es un correo automático, por favor no responder.</p>
+            <p>&copy; ${new Date().getFullYear()} Mindware Labs. All rights reserved.</p>
+            <p>This is an automated email, please do not reply.</p>
         </div>
     </div>
 </body>

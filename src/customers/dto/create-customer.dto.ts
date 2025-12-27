@@ -4,8 +4,8 @@ import { ApiProperty } from '@nestjs/swagger';
 
 export class CreateCustomerDto {
   @ApiProperty({
-    description: 'Nombre del cliente (opcional)',
-    example: 'Juan Pérez',
+    description: 'Customer name (optional)',
+    example: 'John Perez',
     required: false,
   })
   @IsOptional()
@@ -14,7 +14,7 @@ export class CreateCustomerDto {
   name?: string;
 
   @ApiProperty({
-    description: 'Teléfono del cliente (opcional, único)',
+    description: 'Customer phone (optional, unique)',
     example: '+1234567890',
     required: false,
   })
@@ -23,7 +23,7 @@ export class CreateCustomerDto {
   phone?: string;
 
   @ApiProperty({
-    description: 'Indica si el cliente es de la línea de Onboarding',
+    description: 'Indicates whether the customer is in the Onboarding line',
     example: false,
     required: false,
     default: false,

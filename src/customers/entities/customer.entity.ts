@@ -19,7 +19,7 @@ export class Customer {
 
   @Column({
     default: false,
-    comment: 'Indica si el cliente es de la línea de Onboarding',
+    comment: 'Indicates whether the customer is in the Onboarding line',
   })
   isOnBoarding: boolean;
 

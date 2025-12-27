@@ -6,8 +6,8 @@ import { ApiProperty } from '@nestjs/swagger';
 
 export class UpdateCustomerDto extends PartialType(CreateCustomerDto) {
   @ApiProperty({
-    description: 'Nombre del cliente (opcional)',
-    example: 'Juan Pérez',
+    description: 'Customer name (optional)',
+    example: 'John Perez',
     required: false,
   })
   @IsOptional()
@@ -16,7 +16,7 @@ export class UpdateCustomerDto extends PartialType(CreateCustomerDto) {
   name?: string;
 
   @ApiProperty({
-    description: 'Teléfono del cliente (opcional)',
+    description: 'Customer phone (optional)',
     example: '+1234567890',
     required: false,
   })
@@ -25,7 +25,7 @@ export class UpdateCustomerDto extends PartialType(CreateCustomerDto) {
   phone?: string;
 
   @ApiProperty({
-    description: 'Indica si el cliente es de la línea de Onboarding',
+    description: 'Indicates whether the customer is in the Onboarding line',
     example: false,
     required: false,
   })

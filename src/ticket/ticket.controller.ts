@@ -47,29 +47,29 @@ export class TicketController {
   constructor(private readonly ticketService: TicketService) {}
 
   @Post()
-  @ApiOperation({ summary: 'Crear nuevo ticket' })
-  @ApiResponse({ status: 201, description: 'Ticket creado exitosamente' })
-  @ApiResponse({ status: 400, description: 'Datos inválidos' })
+  @ApiOperation({ summary: 'Create a new ticket' })
+  @ApiResponse({ status: 201, description: 'Ticket created successfully' })
+  @ApiResponse({ status: 400, description: 'Invalid data' })
   create(@Body() createTicketDto: CreateTicketDto, @Request() req) {
     const userId = req.user?.id;
     return this.ticketService.create(createTicketDto, userId);
   }
 
   @Get()
-  @ApiOperation({ summary: 'Obtener lista de tickets paginada' })
+  @ApiOperation({ summary: 'Get a paginated list of tickets' })
   @ApiQuery({
     name: 'page',
     required: false,
     type: Number,
-    description: 'Número de página',
+    description: 'Page number',
   })
   @ApiQuery({
     name: 'limit',
     required: false,
     type: Number,
-    description: 'Cantidad de elementos por página',
+    description: 'Number of items per page',
   })
-  @ApiResponse({ status: 200, description: 'Lista de tickets' })
+  @ApiResponse({ status: 200, description: 'Ticket list' })
   findAll(
     @Query('page') page: string = '1',
     @Query('limit') limit: string = '10',
@@ -78,16 +78,16 @@ export class TicketController {
   }
 
   @Get('attachments/download')
-  @ApiOperation({ summary: 'Descargar adjunto del ticket' })
+  @ApiOperation({ summary: 'Download ticket attachment' })
   @ApiQuery({
     name: 'fileUrl',
     required: true,
     type: String,
-    description: 'URL almacenada del adjunto',
+    description: 'Stored attachment URL',
   })
   @ApiResponse({
     status: 200,
-    description: 'Adjunto descargado exitosamente',
+    description: 'Attachment downloaded successfully',
   })
   async downloadAttachment(
     @Query('fileUrl') fileUrl: string,
@@ -111,19 +111,19 @@ export class TicketController {
   }
 
   @Get(':id')
-  @ApiOperation({ summary: 'Obtener ticket por ID' })
-  @ApiParam({ name: 'id', type: Number, description: 'ID del ticket' })
-  @ApiResponse({ status: 200, description: 'Ticket encontrado' })
-  @ApiResponse({ status: 404, description: 'Ticket no encontrado' })
+  @ApiOperation({ summary: 'Get ticket by ID' })
+  @ApiParam({ name: 'id', type: Number, description: 'Ticket ID' })
+  @ApiResponse({ status: 200, description: 'Ticket found' })
+  @ApiResponse({ status: 404, description: 'Ticket not found' })
   findOne(@Param('id', IdValidationPipe) id: string) {
     return this.ticketService.findOne(+id);
   }
 
   @Patch(':id')
-  @ApiOperation({ summary: 'Actualizar ticket' })
-  @ApiParam({ name: 'id', type: Number, description: 'ID del ticket' })
-  @ApiResponse({ status: 200, description: 'Ticket actualizado' })
-  @ApiResponse({ status: 404, description: 'Ticket no encontrado' })
+  @ApiOperation({ summary: 'Update ticket' })
+  @ApiParam({ name: 'id', type: Number, description: 'Ticket ID' })
+  @ApiResponse({ status: 200, description: 'Ticket updated' })
+  @ApiResponse({ status: 404, description: 'Ticket not found' })
   update(
     @Param('id', IdValidationPipe) id: string,
     @Body() updateTicketDto: UpdateTicketDto,
@@ -138,8 +138,8 @@ export class TicketController {
     }),
   )
   @ApiConsumes('multipart/form-data')
-  @ApiOperation({ summary: 'Subir adjuntos para un ticket' })
-  @ApiParam({ name: 'id', type: Number, description: 'ID del ticket' })
+  @ApiOperation({ summary: 'Upload attachments for a ticket' })
+  @ApiParam({ name: 'id', type: Number, description: 'Ticket ID' })
   @ApiBody({
     schema: {
       type: 'object',
@@ -151,7 +151,7 @@ export class TicketController {
       },
     },
   })
-  @ApiResponse({ status: 200, description: 'Adjuntos subidos' })
+  @ApiResponse({ status: 200, description: 'Attachments uploaded' })
   uploadAttachments(
     @Param('id', IdValidationPipe) id: string,
     @UploadedFiles() files: UploadedAttachmentFile[],
@@ -172,10 +172,10 @@ export class TicketController {
   }
 
   @Delete(':id')
-  @ApiOperation({ summary: 'Eliminar ticket' })
-  @ApiParam({ name: 'id', type: Number, description: 'ID del ticket' })
-  @ApiResponse({ status: 200, description: 'Ticket eliminado' })
-  @ApiResponse({ status: 404, description: 'Ticket no encontrado' })
+  @ApiOperation({ summary: 'Delete ticket' })
+  @ApiParam({ name: 'id', type: Number, description: 'Ticket ID' })
+  @ApiResponse({ status: 200, description: 'Ticket deleted' })
+  @ApiResponse({ status: 404, description: 'Ticket not found' })
   remove(@Param('id', IdValidationPipe) id: string) {
     return this.ticketService.remove(+id);
   }

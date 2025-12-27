@@ -15,30 +15,30 @@ import {
 export class EmailPreviewController {
   @Get('password-reset')
   @ApiOperation({
-    summary: 'Vista previa del email de restablecimiento de contraseña',
+    summary: 'Preview of the password reset email',
   })
   @ApiQuery({ name: 'userName', required: false })
   previewPasswordReset(
     @Query('userName') userName: string,
     @Res() res: Response,
   ) {
-    const html = passwordResetCodeTemplate('123456', userName || 'Usuario Ejemplo');
+    const html = passwordResetCodeTemplate('123456', userName || 'Example User');
     res.send(html);
   }
 
   @Get('welcome')
-  @ApiOperation({ summary: 'Vista previa del email de bienvenida' })
+  @ApiOperation({ summary: 'Preview of the welcome email' })
   @ApiQuery({ name: 'userName', required: false })
   previewWelcome(@Query('userName') userName: string, @Res() res: Response) {
     const html = welcomeEmailTemplate(
-      userName || 'Usuario Ejemplo',
+      userName || 'Example User',
       'http://localhost:3000/login',
     );
     res.send(html);
   }
 
   @Get('ticket-created')
-  @ApiOperation({ summary: 'Vista previa del email de ticket creado' })
+  @ApiOperation({ summary: 'Preview of the ticket created email' })
   @ApiQuery({ name: 'ticketId', required: false })
   @ApiQuery({ name: 'customerName', required: false })
   previewTicketCreated(
@@ -48,15 +48,15 @@ export class EmailPreviewController {
   ) {
     const html = ticketCreatedTemplate(
       ticketId || 'T-12345',
-      'Problema con el sistema de autenticación',
-      customerName || 'Cliente Ejemplo',
+      'Issue with the authentication system',
+      customerName || 'Example Customer',
       'http://localhost:3000/tickets/12345',
     );
     res.send(html);
   }
 
   @Get('ticket-updated')
-  @ApiOperation({ summary: 'Vista previa del email de ticket actualizado' })
+  @ApiOperation({ summary: 'Preview of the ticket updated email' })
   @ApiQuery({ name: 'ticketId', required: false })
   @ApiQuery({ name: 'customerName', required: false })
   @ApiQuery({ name: 'status', required: false })
@@ -68,28 +68,28 @@ export class EmailPreviewController {
   ) {
     const html = ticketUpdatedTemplate(
       ticketId || 'T-12345',
-      'Problema con el sistema de autenticación',
-      customerName || 'Cliente Ejemplo',
-      status || 'en_progreso',
-      'Nuestro equipo técnico está investigando el problema. Hemos identificado la causa raíz y estamos trabajando en la solución. Te mantendremos informado de cualquier progreso.',
+      'Issue with the authentication system',
+      customerName || 'Example Customer',
+      status || 'IN_PROGRESS',
+      'Our technical team is investigating the issue. We have identified the root cause and are working on a fix. We will keep you updated on any progress.',
       'http://localhost:3000/tickets/12345',
     );
     res.send(html);
   }
 
   @Get('password-changed')
-  @ApiOperation({ summary: 'Vista previa del email de contraseña cambiada' })
+  @ApiOperation({ summary: 'Preview of the password changed email' })
   @ApiQuery({ name: 'userName', required: false })
   previewPasswordChanged(
     @Query('userName') userName: string,
     @Res() res: Response,
   ) {
-    const html = passwordChangedTemplate(userName || 'Usuario Ejemplo');
+    const html = passwordChangedTemplate(userName || 'Example User');
     res.send(html);
   }
 
   @Get('verify-account')
-  @ApiOperation({ summary: 'Vista previa del email de verificación de cuenta' })
+  @ApiOperation({ summary: 'Preview of the account verification email' })
   @ApiQuery({ name: 'userName', required: false })
   previewVerifyAccount(
     @Query('userName') userName: string,
@@ -97,17 +97,17 @@ export class EmailPreviewController {
   ) {
     const html = accountVerificationCodeTemplate(
       '654321',
-      userName || 'Usuario Ejemplo',
+      userName || 'Example User',
     );
     res.send(html);
   }
 
   @Get()
-  @ApiOperation({ summary: 'Índice de todas las vistas previas' })
+  @ApiOperation({ summary: 'Index of all previews' })
   index(@Res() res: Response) {
     const html = `
       <!DOCTYPE html>
-      <html lang="es">
+      <html lang="en">
       <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -161,43 +161,43 @@ export class EmailPreviewController {
         <div class="template-list">
           <div class="template-item">
             <h3>🔐 Password Reset Code</h3>
-            <p>Email con codigo para restablecer contraseña</p>
-            <a href="/email-preview/password-reset" target="_blank">Ver Preview →</a>
+            <p>Email with a code to reset the password</p>
+            <a href="/email-preview/password-reset" target="_blank">View Preview -></a>
           </div>
           
           <div class="template-item">
             <h3>🎉 Welcome Email</h3>
-            <p>Email de bienvenida para nuevos usuarios</p>
-            <a href="/email-preview/welcome" target="_blank">Ver Preview →</a>
+            <p>Welcome email for new users</p>
+            <a href="/email-preview/welcome" target="_blank">View Preview -></a>
           </div>
           
           <div class="template-item">
             <h3>🎫 Ticket Created</h3>
-            <p>Email cuando se crea un nuevo ticket</p>
-            <a href="/email-preview/ticket-created" target="_blank">Ver Preview →</a>
+            <p>Email sent when a new ticket is created</p>
+            <a href="/email-preview/ticket-created" target="_blank">View Preview -></a>
           </div>
           
           <div class="template-item">
             <h3>🔔 Ticket Updated</h3>
-            <p>Email cuando se actualiza un ticket</p>
-            <a href="/email-preview/ticket-updated" target="_blank">Ver Preview →</a>
+            <p>Email sent when a ticket is updated</p>
+            <a href="/email-preview/ticket-updated" target="_blank">View Preview -></a>
           </div>
           
           <div class="template-item">
             <h3>✓ Password Changed</h3>
-            <p>Email de confirmación de cambio de contraseña</p>
-            <a href="/email-preview/password-changed" target="_blank">Ver Preview →</a>
+            <p>Password change confirmation email</p>
+            <a href="/email-preview/password-changed" target="_blank">View Preview -></a>
           </div>
           
           <div class="template-item">
             <h3>✉️ Account Verification Code</h3>
-            <p>Email con codigo para verificar cuenta de nuevo usuario</p>
-            <a href="/email-preview/verify-account" target="_blank">Ver Preview →</a>
+            <p>Email with a code to verify a new user account</p>
+            <a href="/email-preview/verify-account" target="_blank">View Preview -></a>
           </div>
         </div>
         
         <p style="text-align: center; color: #666; margin-top: 30px;">
-          Puedes personalizar los parámetros usando query strings (ej: ?userName=Juan&ticketId=T-123)
+          You can customize parameters using query strings (example: ?userName=John&ticketId=T-123)
         </p>
       </body>
       </html>

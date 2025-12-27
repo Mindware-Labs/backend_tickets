@@ -5,8 +5,8 @@ import { YardType } from '../entities/yard.entity';
 
 export class CreateYardDto {
   @ApiProperty({
-    description: 'Nombre del yard',
-    example: 'Yard Central',
+    description: 'Yard name',
+    example: 'Central Yard',
   })
   @IsNotEmpty({ message: 'Name should not be empty' })
   @IsString({ message: 'Invalid Name format' })
@@ -14,8 +14,8 @@ export class CreateYardDto {
   name: string;
 
   @ApiProperty({
-    description: 'Nombre común del yard',
-    example: 'Patio de Contenedores Central',
+    description: 'Yard common name',
+    example: 'Central Container Yard',
   })
   @IsNotEmpty({ message: 'Common Name should not be empty' })
   @IsString({ message: 'Invalid Common Name format' })
@@ -23,8 +23,8 @@ export class CreateYardDto {
   commonName: string;
 
   @ApiProperty({
-    description: 'Dirección de la propiedad',
-    example: 'Av. Principal 123, Ciudad',
+    description: 'Property address',
+    example: '123 Main St, City',
   })
   @IsNotEmpty({ message: 'Property Address should not be empty' })
   @IsString({ message: 'Invalid Property Address format' })
@@ -32,7 +32,7 @@ export class CreateYardDto {
   propertyAddress: string;
 
   @ApiProperty({
-    description: 'Información de contacto',
+    description: 'Contact information',
     example: '+1234567890',
   })
   @IsNotEmpty({ message: 'Contact Info should not be empty' })
@@ -41,7 +41,7 @@ export class CreateYardDto {
   contactInfo: string;
 
   @ApiProperty({
-    description: 'Enlace al yard',
+    description: 'Yard link',
     example: 'https://example.com/yard/123',
     required: false,
   })
@@ -51,8 +51,8 @@ export class CreateYardDto {
   yardLink: string;
 
   @ApiProperty({
-    description: 'Notas adicionales sobre el yard',
-    example: 'Este yard opera 24/7.',
+    description: 'Additional notes about the yard',
+    example: 'This yard operates 24/7.',
     required: false,
   })
   @IsOptional()
@@ -61,7 +61,7 @@ export class CreateYardDto {
   notes: string;
 
   @ApiProperty({
-    description: 'Tipo de yard',
+    description: 'Yard type',
     example: 'SAAS',
     enum: YardType,
   })
@@ -72,7 +72,7 @@ export class CreateYardDto {
   yardType: YardType;
 
   @ApiProperty({
-    description: 'Indica si el yard está activo',
+    description: 'Indicates whether the yard is active',
     example: true,
   })
   @IsNotEmpty({ message: 'isActive should not be empty' })

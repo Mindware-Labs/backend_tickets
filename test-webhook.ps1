@@ -1,13 +1,13 @@
-# Script de prueba para webhooks de Aircall
-# Ejecuta: .\test-webhook.ps1
+# Test script for Aircall webhooks
+# Run: .\test-webhook.ps1
 
 $baseUrl = "http://localhost:3001"
 
-Write-Host "Probando Webhook de Aircall..." -ForegroundColor Cyan
+Write-Host "Testing Aircall webhook..." -ForegroundColor Cyan
 Write-Host ""
 
-# Test 1: Llamada finalizada
-Write-Host "Test 1: Llamada contestada y finalizada" -ForegroundColor Yellow
+# Test 1: Call ended
+Write-Host "Test 1: Answered call and ended" -ForegroundColor Yellow
 
 $body = @{
     event     = "call.ended"
@@ -26,7 +26,7 @@ $body = @{
         to          = "+34987654321"
         user        = @{
             id    = 1
-            name  = "Juan Pérez"
+            name  = "Juan Perez"
             email = "juan@example.com"
         }
         recording   = "https://api.aircall.io/recordings/abc123.mp3"
@@ -35,7 +35,7 @@ $body = @{
 
 try {
     $response = Invoke-RestMethod -Uri "$baseUrl/webhooks/aircall" -Method Post -Body $body -ContentType "application/json"
-    Write-Host "✅ Respuesta: $($response | ConvertTo-Json)" -ForegroundColor Green
+    Write-Host "✅ Response: $($response | ConvertTo-Json)" -ForegroundColor Green
 }
 catch {
     Write-Host "❌ Error: $($_.Exception.Message)" -ForegroundColor Red
@@ -45,8 +45,8 @@ Write-Host ""
 Write-Host "----------------------------------------" -ForegroundColor Gray
 Write-Host ""
 
-# Test 2: Llamada perdida
-Write-Host "Test 2: Llamada perdida" -ForegroundColor Yellow
+# Test 2: Missed call
+Write-Host "Test 2: Missed call" -ForegroundColor Yellow
 
 $body2 = @{
     event     = "call.ended"
@@ -67,7 +67,7 @@ $body2 = @{
 
 try {
     $response = Invoke-RestMethod -Uri "$baseUrl/webhooks/aircall" -Method Post -Body $body2 -ContentType "application/json"
-    Write-Host "✅ Respuesta: $($response | ConvertTo-Json)" -ForegroundColor Green
+    Write-Host "✅ Response: $($response | ConvertTo-Json)" -ForegroundColor Green
 }
 catch {
     Write-Host "❌ Error: $($_.Exception.Message)" -ForegroundColor Red
@@ -78,7 +78,7 @@ Write-Host "----------------------------------------" -ForegroundColor Gray
 Write-Host ""
 
 # Test 3: Voicemail
-Write-Host "Test 3: Llamada con voicemail" -ForegroundColor Yellow
+Write-Host "Test 3: Call with voicemail" -ForegroundColor Yellow
 
 $body3 = @{
     event     = "call.ended"
@@ -98,15 +98,15 @@ $body3 = @{
 
 try {
     $response = Invoke-RestMethod -Uri "$baseUrl/webhooks/aircall" -Method Post -Body $body3 -ContentType "application/json"
-    Write-Host "✅ Respuesta: $($response | ConvertTo-Json)" -ForegroundColor Green
+    Write-Host "✅ Response: $($response | ConvertTo-Json)" -ForegroundColor Green
 }
 catch {
     Write-Host "❌ Error: $($_.Exception.Message)" -ForegroundColor Red
 }
 
 Write-Host ""
-Write-Host "Pruebas completadas!" -ForegroundColor Cyan
+Write-Host "Tests completed!" -ForegroundColor Cyan
 Write-Host ""
-Write-Host "Para ver los datos guardados, consulta la base de datos:" -ForegroundColor White
+Write-Host "To see saved data, query the database:" -ForegroundColor White
 Write-Host "   SELECT * FROM webhook_events ORDER BY receivedAt DESC LIMIT 5;" -ForegroundColor Gray
 Write-Host "   SELECT * FROM calls ORDER BY createdAt DESC LIMIT 5;" -ForegroundColor Gray

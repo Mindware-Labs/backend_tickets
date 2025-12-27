@@ -5,8 +5,8 @@ import { Transform } from 'class-transformer';
 
 export class UpdateKnowledgeDto extends PartialType(CreateKnowledgeDto) {
   @ApiProperty({
-    description: 'Nombre del artículo de conocimiento',
-    example: 'Cómo realizar un pedido',
+    description: 'Knowledge article name',
+    example: 'How to place an order',
   })
   @IsNotEmpty({ message: 'Name should not be empty' })
   @IsString({ message: 'Name must be a string' })
@@ -14,8 +14,8 @@ export class UpdateKnowledgeDto extends PartialType(CreateKnowledgeDto) {
   name: string;
 
   @ApiProperty({
-    description: 'Descripción del artículo de conocimiento',
-    example: 'Guía paso a paso para realizar un pedido en el sistema',
+    description: 'Knowledge article description',
+    example: 'Step-by-step guide to place an order in the system',
   })
   @IsNotEmpty({ message: 'Name should not be empty' })
   @IsString({ message: 'Name must be a string' })
