@@ -186,11 +186,15 @@ export class AircallService {
           data.user.name,
           data.user.email,
         );
-        const where = [];
+        const where: Array<{
+          aircallId?: string;
+          email?: string;
+          userId?: number;
+        }> = [];
         if (data.user.id) where.push({ aircallId: data.user.id.toString() });
         if (data.user.email) where.push({ email: data.user.email });
         if (user?.id) where.push({ userId: user.id });
-        const agent = where.length
+        let agent = where.length
           ? await this.agentRepo.findOne({ where })
           : null;
 
