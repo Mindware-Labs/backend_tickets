@@ -1,7 +1,7 @@
 import { PartialType } from '@nestjs/mapped-types';
 import { CreateCustomerDto } from './create-customer.dto';
-import { IsBoolean, IsOptional, IsString } from 'class-validator';
-import { Transform } from 'class-transformer';
+import { ArrayUnique, IsArray, IsInt, IsOptional, IsString } from 'class-validator';
+import { Transform, Type } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class UpdateCustomerDto extends PartialType(CreateCustomerDto) {
@@ -25,11 +25,15 @@ export class UpdateCustomerDto extends PartialType(CreateCustomerDto) {
   phone?: string;
 
   @ApiProperty({
-    description: 'Indicates whether the customer is in the Onboarding line',
-    example: false,
+    description: 'Campaign IDs assigned to the customer',
+    example: [1, 2],
     required: false,
+    type: [Number],
   })
   @IsOptional()
-  @IsBoolean()
-  isOnBoarding?: boolean;
+  @IsArray()
+  @ArrayUnique()
+  @IsInt({ each: true })
+  @Type(() => Number)
+  campaignIds?: number[];
 }

@@ -172,7 +172,6 @@ export class AircallService {
         customer = this.customerRepo.create({
           name: fullName,
           phone: phoneNumber,
-          isOnBoarding: false,
         });
         await this.customerRepo.save(customer);
       }

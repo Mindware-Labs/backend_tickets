@@ -1,5 +1,6 @@
 import { Ticket } from 'src/ticket/entities/ticket.entity';
 import { Yard } from '../../yards/entities/yard.entity';
+import { Customer } from '../../customers/entities/customer.entity';
 import {
   Column,
   Entity,
@@ -8,6 +9,7 @@ import {
   UpdateDateColumn,
   ManyToOne,
   OneToMany,
+  ManyToMany,
 } from 'typeorm';
 
 export enum CampaignType {
@@ -53,4 +55,7 @@ export class Campaign {
 
   @OneToMany(() => Ticket, (ticket) => ticket.campaign)
   tickets: Ticket[];
+
+  @ManyToMany(() => Customer, (customer) => customer.campaigns)
+  customers?: Customer[];
 }

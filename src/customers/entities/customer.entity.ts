@@ -4,7 +4,10 @@ import {
   PrimaryGeneratedColumn,
   CreateDateColumn,
   UpdateDateColumn,
+  ManyToMany,
+  JoinTable,
 } from 'typeorm';
+import { Campaign } from '../../campaign/entities/campaign.entity';
 
 @Entity('customers')
 export class Customer {
@@ -17,11 +20,9 @@ export class Customer {
   @Column({ nullable: true, unique: true })
   phone?: string;
 
-  @Column({
-    default: false,
-    comment: 'Indicates whether the customer is in the Onboarding line',
-  })
-  isOnBoarding: boolean;
+  @ManyToMany(() => Campaign, (campaign) => campaign.customers)
+  @JoinTable({ name: 'customer_campaigns' })
+  campaigns?: Campaign[];
 
   @CreateDateColumn()
   createdAt: Date;

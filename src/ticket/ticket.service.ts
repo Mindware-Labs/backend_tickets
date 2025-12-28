@@ -24,21 +24,43 @@ export class TicketService {
     private readonly campaignRepository: Repository<Campaign>,
   ) {}
 
+  private async loadCustomerWithCampaigns(id: number) {
+    return this.customerRepository.findOne({
+      where: { id },
+      relations: ['campaigns'],
+    });
+  }
+
+  private async attachCampaignToCustomer(
+    customer: Customer,
+    campaign: Campaign,
+  ) {
+    const current = customer.campaigns ?? [];
+    const exists = current.some((item) => item.id === campaign.id);
+    if (!exists) {
+      customer.campaigns = [...current, campaign];
+      await this.customerRepository.save(customer);
+    }
+  }
+
   async create(createTicketDto: CreateTicketDto, createdByUserId: number) {
     const ticketData = createTicketDto;
-    const yard = await this.yardRepository.findOneBy({
-      id: createTicketDto.yardId,
-    });
+    let yard: Yard | null = null;
+    if (createTicketDto.yardId) {
+      yard = await this.yardRepository.findOneBy({
+        id: createTicketDto.yardId,
+      });
 
-    if (!yard) {
-      throw new NotFoundException(
-        `Yard with ID ${createTicketDto.yardId} not found`,
-      );
+      if (!yard) {
+        throw new NotFoundException(
+          `Yard with ID ${createTicketDto.yardId} not found`,
+        );
+      }
     }
 
-    const customer = await this.customerRepository.findOneBy({
-      id: createTicketDto.customerId,
-    });
+    const customer = await this.loadCustomerWithCampaigns(
+      createTicketDto.customerId,
+    );
 
     if (!customer) {
       throw new NotFoundException(
@@ -46,14 +68,17 @@ export class TicketService {
       );
     }
 
-    const campaign = await this.campaignRepository.findOneBy({
-      id: createTicketDto.campaignId,
-    });
+    let campaign: Campaign | null = null;
+    if (createTicketDto.campaignId) {
+      campaign = await this.campaignRepository.findOneBy({
+        id: createTicketDto.campaignId,
+      });
 
-    if (!campaign) {
-      throw new NotFoundException(
-        `Campaign with ID ${createTicketDto.campaignId} not found`,
-      );
+      if (!campaign) {
+        throw new NotFoundException(
+          `Campaign with ID ${createTicketDto.campaignId} not found`,
+        );
+      }
     }
 
     const count = await this.ticketRepository.count();
@@ -66,6 +91,10 @@ export class TicketService {
 
     const ticket = this.ticketRepository.create(ticketDataWithNumber);
     const savedTicket = await this.ticketRepository.save(ticket);
+
+    if (campaign) {
+      await this.attachCampaignToCustomer(customer, campaign);
+    }
 
     return savedTicket;
   }
@@ -103,6 +132,7 @@ export class TicketService {
   async update(id: number, updateTicketDto: UpdateTicketDto) {
     const ticketData = updateTicketDto;
     const ticket = await this.findOne(id);
+    let updatedCustomer: Customer | null = null;
 
     if (!ticket) {
       throw new NotFoundException(`Ticket with id ${id} not found`);
@@ -122,9 +152,9 @@ export class TicketService {
     }
 
     if (updateTicketDto.customerId) {
-      const customer = await this.customerRepository.findOneBy({
-        id: updateTicketDto.customerId,
-      });
+      const customer = await this.loadCustomerWithCampaigns(
+        updateTicketDto.customerId,
+      );
 
       if (!customer) {
         throw new NotFoundException(
@@ -132,9 +162,10 @@ export class TicketService {
         );
       }
       ticket.customer = customer;
+      updatedCustomer = customer;
     }
 
-    if (updateTicketDto.campaignId) {
+    if (updateTicketDto.campaignId !== undefined) {
       const campaign = await this.campaignRepository.findOneBy({
         id: updateTicketDto.campaignId,
       });
@@ -146,6 +177,13 @@ export class TicketService {
       }
 
       ticket.campaign = campaign;
+
+      const targetCustomer =
+        updatedCustomer ??
+        (await this.loadCustomerWithCampaigns(ticket.customerId));
+      if (targetCustomer) {
+        await this.attachCampaignToCustomer(targetCustomer, campaign);
+      }
     }
 
     Object.assign(ticket, ticketData);
