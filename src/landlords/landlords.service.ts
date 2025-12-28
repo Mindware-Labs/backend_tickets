@@ -107,6 +107,10 @@ export class LandlordsService {
 
   async remove(id: number) {
     const landlord = await this.findOne(id);
+    await this.yardRepository.update(
+      { landlord: { id: landlord.id } },
+      { landlord: null, landlordId: null },
+    );
     await this.landlordRepository.remove(landlord);
     return `Landlord with id ${id} has been removed`;
   }

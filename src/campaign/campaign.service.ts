@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Campaign } from './entities/campaign.entity';
@@ -134,6 +134,14 @@ export class CampaignService {
 
   async remove(id: number) {
     const campaign = await this.findOne(id);
+    const ticketCount = await this.ticketRepo.count({
+      where: { campaignId: campaign.id },
+    });
+    if (ticketCount > 0) {
+      throw new ConflictException(
+        'Cannot delete campaign because it has associated tickets. Please deactivate the campaign instead.',
+      );
+    }
     await this.campaignRepo.remove(campaign);
 
     return { message: `Campaign with ID ${id} has been removed` };

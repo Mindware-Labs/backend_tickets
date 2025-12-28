@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CreateTicketDto } from './dto/create-ticket.dto';
@@ -201,8 +201,8 @@ export class TicketService {
   }
 
   async remove(id: number) {
-    const ticket = await this.findOne(id);
-    await this.ticketRepository.remove(ticket);
-    return { message: `Ticket with id ${id} has been removed` };
+    throw new ConflictException(
+      'Tickets cannot be deleted. Please archive the ticket instead.',
+    );
   }
 }
