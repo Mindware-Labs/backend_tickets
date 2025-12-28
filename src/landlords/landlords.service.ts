@@ -290,70 +290,190 @@ export class LandlordsService {
     };
   }
 
-  private async buildReportPdf(report: any) {
-    const doc = new PDFDocument({ margin: 40 });
+ private async buildReportPdf(report: any) {
+    const doc = new PDFDocument({ margin: 50, size: 'A4' });
     const chunks: Buffer[] = [];
+
+    // Colors & Styles
+    const primaryColor = '#1e40af'; // Dark Blue
+    const secondaryColor = '#3b82f6'; // Bright Blue
+    const grayColor = '#6b7280';
+    const lightGray = '#f3f4f6';
+    const white = '#ffffff';
+
     doc.on('data', (chunk) => chunks.push(chunk as Buffer));
 
-    doc.fontSize(18).text('Landlord Report', { align: 'left' });
-    doc.moveDown(0.5);
-    doc.fontSize(11).text(`Landlord: ${report.landlord.name}`);
-    doc.text(`Range: ${new Date(report.range.startDate).toLocaleDateString()} - ${new Date(
-      report.range.endDate,
-    ).toLocaleDateString()}`);
-    doc.moveDown();
+    // --- 1. HEADER ---
+    // Header Background
+    doc.rect(0, 0, doc.page.width, 140).fill(lightGray);
 
-    doc.fontSize(12).text('Summary');
-    doc.fontSize(10).text(`Total Tickets: ${report.totals.total}`);
-    doc.text(`Inbound Calls: ${report.totals.inbound}`);
-    doc.text(`Outbound Calls: ${report.totals.outbound}`);
-    doc.text(`Average per Yard: ${report.averagePerYard}`);
-    doc.moveDown();
+    // Main Title
+    doc.fillColor(primaryColor).fontSize(24).font('Helvetica-Bold').text('LANDLORD REPORT', 50, 40);
 
-    doc.fontSize(12).text('Yards');
-    doc.moveDown(0.5);
-    report.yards.forEach((yard: any) => {
-      doc.fontSize(10).text(
-        `${yard.name} | Total: ${yard.total} | Inbound: ${yard.inbound} | Outbound: ${yard.outbound}`,
-      );
-    });
-    doc.moveDown();
+    // Decorative Line
+    doc.rect(50, 70, 50, 3).fill(secondaryColor);
 
-    doc.fontSize(12).text('Top Yards');
-    doc.moveDown(0.5);
-    report.topYards.forEach((yard: any) => {
-      doc.fontSize(10).text(`${yard.name} | Total: ${yard.total}`);
-    });
-    doc.moveDown();
+    // Landlord Info (Left Side)
+    doc.fillColor('black').fontSize(10).font('Helvetica-Bold').text('GENERATED FOR:', 50, 90);
+    doc.font('Helvetica').fontSize(12).text(report.landlord.name, 50, 105);
+    doc.fontSize(10).fillColor(grayColor).text(report.landlord.email, 50, 120);
 
-    doc.fontSize(12).text('Calls by Day');
-    doc.moveDown(0.5);
-    report.callsByDay.forEach((day: any) => {
-      doc.fontSize(10).text(
-        `${day.date} | Total: ${day.total} | Inbound: ${day.inbound} | Outbound: ${day.outbound}`,
-      );
-    });
-    doc.moveDown();
+    // Date Range (Right Side)
+    const dateTextX = 400;
+    doc.fillColor('black').fontSize(10).font('Helvetica-Bold').text('REPORT RANGE:', dateTextX, 90);
+    doc.font('Helvetica').fontSize(10).text(
+      `${new Date(report.range.startDate).toLocaleDateString()} - ${new Date(report.range.endDate).toLocaleDateString()}`,
+      dateTextX,
+      105
+    );
+
+    doc.moveDown(4); // Space after header
+
+    // --- 2. SUMMARY CARDS (METRICS) ---
+    const summaryY = 160;
+    const boxWidth = 120;
+    const boxHeight = 70;
+    const gap = 15;
+
+    const drawSummaryCard = (x: number, title: string, value: string | number, color: string) => {
+      // Light shadow
+      doc.rect(x + 2, summaryY + 2, boxWidth, boxHeight).fillColor('#e5e7eb').fill();
+      // White box
+      doc.rect(x, summaryY, boxWidth, boxHeight).fillColor(white).fill();
+      doc.rect(x, summaryY, boxWidth, boxHeight).strokeColor('#e5e7eb').stroke();
+      
+      // Top color border
+      doc.rect(x, summaryY, boxWidth, 3).fillColor(color).fill();
+
+      // Text
+      doc.fillColor(grayColor).fontSize(9).font('Helvetica').text(title.toUpperCase(), x + 10, summaryY + 15);
+      doc.fillColor('black').fontSize(18).font('Helvetica-Bold').text(String(value), x + 10, summaryY + 35);
+    };
+
+    drawSummaryCard(50, 'Total Tickets', report.totals.total, primaryColor);
+    drawSummaryCard(50 + boxWidth + gap, 'Inbound Calls', report.totals.inbound, '#10b981'); // Green
+    drawSummaryCard(50 + (boxWidth + gap) * 2, 'Outbound Calls', report.totals.outbound, '#f59e0b'); // Orange
+    drawSummaryCard(50 + (boxWidth + gap) * 3, 'Avg Per Yard', report.averagePerYard, secondaryColor);
+
+    doc.y = summaryY + boxHeight + 40;
+
+    // --- 3. YARDS TABLE (DETAILS) ---
+    
+    // Helper function to draw tables
+    const drawTable = (title: string, data: any[], columns: { header: string, width: number, key: string, align?: string }[]) => {
+      // Check for page break
+      if (doc.y + 100 > doc.page.height) doc.addPage();
+
+      doc.fillColor(primaryColor).fontSize(14).font('Helvetica-Bold').text(title, 50, doc.y);
+      doc.moveDown(0.5);
+
+      const startX = 50;
+      let currentY = doc.y;
+      const rowHeight = 25;
+
+      // Draw Headers
+      doc.rect(startX, currentY, 500, rowHeight).fill(lightGray);
+      let colX = startX + 10;
+      
+      doc.fillColor('black').fontSize(9).font('Helvetica-Bold');
+      columns.forEach(col => {
+        doc.text(col.header, colX, currentY + 8, { width: col.width, align: col.align as any || 'left' });
+        colX += col.width;
+      });
+
+      currentY += rowHeight;
+
+      // Draw Rows
+      doc.font('Helvetica').fontSize(9);
+      data.forEach((row, index) => {
+        // Check for page break inside table
+        if (currentY + rowHeight > doc.page.height - 50) {
+          doc.addPage();
+          currentY = 50;
+        }
+
+        // Alternating row colors (zebra striping)
+        if (index % 2 === 0) {
+           doc.rect(startX, currentY, 500, rowHeight).fill('#fafafa');
+        }
+        
+        // Subtle bottom border
+        doc.moveTo(startX, currentY + rowHeight).lineTo(startX + 500, currentY + rowHeight).strokeColor('#e5e7eb').stroke();
+
+        let cellX = startX + 10;
+        doc.fillColor('#374151'); // Dark gray text
+        
+        columns.forEach(col => {
+            const textValue = String(row[col.key] || 0);
+            doc.text(textValue, cellX, currentY + 8, { width: col.width, align: col.align as any || 'left' });
+            cellX += col.width;
+        });
+
+        currentY += rowHeight;
+      });
+
+      doc.y = currentY + 30; // Space after table
+    };
+
+    // Column definitions
+    const yardColumns = [
+        { header: 'YARD NAME', width: 200, key: 'name' },
+        { header: 'TOTAL', width: 80, key: 'total', align: 'center' },
+        { header: 'INBOUND', width: 80, key: 'inbound', align: 'center' },
+        { header: 'OUTBOUND', width: 80, key: 'outbound', align: 'center' }
+    ];
+
+    // Draw Yards Table (Sorted by total volume)
+    const sortedYards = [...report.yards].sort((a: any, b: any) => b.total - a.total);
+    drawTable('Yard Details', sortedYards, yardColumns);
+
+
+    // --- 4. BAR CHART (Daily Volume) ---
+    
+    // Check space for chart
+    if (doc.y + 200 > doc.page.height) doc.addPage();
+
+    doc.fillColor(primaryColor).fontSize(14).font('Helvetica-Bold').text('Daily Volume', 50, doc.y);
+    doc.moveDown(1);
 
     const chartDays = report.callsByDay.slice(-14);
-    const maxTotal = Math.max(0, ...chartDays.map((day: any) => day.total));
-    const chartX = doc.x;
-    const chartStartY = doc.y;
-    const barHeight = 8;
-    const barGap = 6;
-    const maxBarWidth = 200;
+    const maxTotal = Math.max(1, ...chartDays.map((day: any) => day.total)); // Prevent division by zero
+    
+    const chartX = 50;
+    const chartWidth = 450;
+    const barHeight = 15;
+    const barGap = 10;
+    const labelWidth = 60;
+    const maxBarWidth = chartWidth - labelWidth - 40; // Space for value label
 
-    doc.fontSize(12).text('Daily Volume (last 14 days)');
-    chartDays.forEach((day: any, index: number) => {
-      const y = chartStartY + 20 + index * (barHeight + barGap);
-      const width = maxTotal ? (day.total / maxTotal) * maxBarWidth : 0;
-      doc.fillColor('black').fontSize(8).text(day.date, chartX, y);
-      doc.rect(chartX + 70, y + 2, width, barHeight).fill('#4f46e5');
-      doc.fillColor('black')
-        .fontSize(8)
-        .text(String(day.total), chartX + 70 + maxBarWidth + 6, y);
+    let chartY = doc.y;
+
+    doc.font('Helvetica').fontSize(8);
+
+    chartDays.forEach((day: any) => {
+      // Check page break inside chart
+      if (chartY + barHeight + barGap > doc.page.height - 50) {
+         doc.addPage();
+         chartY = 50;
+      }
+
+      // Date Label
+      doc.fillColor(grayColor).text(day.date, chartX, chartY + 4, { width: labelWidth, align: 'right' });
+
+      // Bar Background (light gray for context)
+      doc.rect(chartX + labelWidth + 10, chartY, maxBarWidth, barHeight).fillColor('#f3f4f6').fill();
+
+      // Value Bar
+      const width = (day.total / maxTotal) * maxBarWidth;
+      if (width > 0) {
+        doc.rect(chartX + labelWidth + 10, chartY, width, barHeight).fillColor(secondaryColor).fill();
+      }
+
+      // Value Label
+      doc.fillColor('black').text(String(day.total), chartX + labelWidth + 10 + width + 5, chartY + 4);
+
+      chartY += barHeight + barGap;
     });
-    doc.y = chartStartY + 20 + chartDays.length * (barHeight + barGap) + 10;
 
     doc.end();
 
@@ -361,7 +481,6 @@ export class LandlordsService {
       doc.on('end', () => resolve(Buffer.concat(chunks)));
     });
   }
-
   async getReport(
     landlordId: number,
     startDate: string,
