@@ -7,7 +7,10 @@ import {
   Param,
   Delete,
   Query,
+  Res,
+  StreamableFile,
 } from '@nestjs/common';
+import type { Response } from 'express';
 import { LandlordsService } from './landlords.service';
 import { CreateLandlordDto } from './dto/create-landlord.dto';
 import { UpdateLandlordDto } from './dto/update-landlord.dto';
@@ -62,6 +65,29 @@ export class LandlordsController {
       body.endDate,
       body.yardId,
     );
+  }
+
+  @Get(':id/report/pdf')
+  async downloadReportPdf(
+    @Param('id', IdValidationPipe) id: string,
+    @Query('startDate') startDate: string,
+    @Query('endDate') endDate: string,
+    @Res({ passthrough: true }) res: Response,
+    @Query('yardId') yardId?: string,
+  ) {
+    const pdf = await this.landlordsService.getReportPdf(
+      +id,
+      startDate,
+      endDate,
+      yardId ? Number(yardId) : undefined,
+    );
+
+    res.set({
+      'Content-Type': 'application/pdf',
+      'Content-Disposition': `attachment; filename="landlord-report-${id}.pdf"`,
+    });
+
+    return new StreamableFile(pdf);
   }
 
   @Patch(':id')

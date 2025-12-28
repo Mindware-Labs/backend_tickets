@@ -1,6 +1,6 @@
 import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { ILike, Repository } from 'typeorm';
 import { Campaign } from './entities/campaign.entity';
 import { CreateCampaignDto } from './dto/create-campaign.dto';
 import { UpdateCampaignDto } from './dto/update-campaign.dto';
@@ -46,6 +46,17 @@ export class CampaignService {
   }
 
   async create(createCampaignDto: CreateCampaignDto) {
+    const name = createCampaignDto.nombre?.trim();
+    if (name) {
+      const existing = await this.campaignRepo.findOne({
+        where: { nombre: ILike(name) },
+      });
+      if (existing) {
+        throw new ConflictException(
+          'A campaign with this name already exists. Please choose a different name.',
+        );
+      }
+    }
     let yard: Yard | null = null;
     if (createCampaignDto.yardaId !== undefined) {
       yard = await this.yardRepo.findOneBy({
@@ -148,30 +159,34 @@ export class CampaignService {
   }
 
   findByType(tipo: string) {
-    return this.campaignRepo.find({
-      where: { tipo: tipo as any },
-      relations: ['yarda'],
-      order: { nombre: 'ASC' },
-    }).then(async (campaigns) => {
-      const counts = await this.getTicketCounts(campaigns);
-      return campaigns.map((campaign) => ({
-        ...campaign,
-        ticketCount: counts.get(campaign.id) || 0,
-      }));
-    });
+    return this.campaignRepo
+      .find({
+        where: { tipo: tipo as any },
+        relations: ['yarda'],
+        order: { nombre: 'ASC' },
+      })
+      .then(async (campaigns) => {
+        const counts = await this.getTicketCounts(campaigns);
+        return campaigns.map((campaign) => ({
+          ...campaign,
+          ticketCount: counts.get(campaign.id) || 0,
+        }));
+      });
   }
 
   findActive() {
-    return this.campaignRepo.find({
-      where: { isActive: true },
-      relations: ['yarda'],
-      order: { nombre: 'ASC' },
-    }).then(async (campaigns) => {
-      const counts = await this.getTicketCounts(campaigns);
-      return campaigns.map((campaign) => ({
-        ...campaign,
-        ticketCount: counts.get(campaign.id) || 0,
-      }));
-    });
+    return this.campaignRepo
+      .find({
+        where: { isActive: true },
+        relations: ['yarda'],
+        order: { nombre: 'ASC' },
+      })
+      .then(async (campaigns) => {
+        const counts = await this.getTicketCounts(campaigns);
+        return campaigns.map((campaign) => ({
+          ...campaign,
+          ticketCount: counts.get(campaign.id) || 0,
+        }));
+      });
   }
 }

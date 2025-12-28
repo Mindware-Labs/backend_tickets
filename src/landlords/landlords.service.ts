@@ -529,4 +529,19 @@ export class LandlordsService {
 
     return { success: true };
   }
+
+  async getReportPdf(
+    landlordId: number,
+    startDate: string,
+    endDate: string,
+    yardId?: number,
+  ) {
+    const report = await this.buildReportData(
+      landlordId,
+      startDate,
+      endDate,
+      yardId,
+    );
+    return this.buildReportPdf(report);
+  }
 }

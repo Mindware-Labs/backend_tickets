@@ -17,6 +17,7 @@ import { KnowledgeModule } from './knowledge/knowledge.module';
 import { PoliciesModule } from './policies/policies.module';
 import { ReportsModule } from './reports/reports.module';
 import { LandlordsModule } from './landlords/landlords.module';
+import { UsersModule } from './users/users.module';
 
 @Module({
   imports: [
@@ -45,6 +46,7 @@ import { LandlordsModule } from './landlords/landlords.module';
     PoliciesModule,
     ReportsModule,
     LandlordsModule,
+    UsersModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -99,9 +99,19 @@ export class EmailService {
 
         try {
             const info = await this.transporter.sendMail(mailOptions);
+            const accepted = (info?.accepted || []).map(String);
+            const rejected = (info?.rejected || []).map(String);
             this.logger.log(
                 `Email sent successfully to ${options.to}: ${info?.messageId || 'N/A'}`,
             );
+            this.logger.log(
+                `Email delivery status - accepted: ${accepted.join(', ') || 'none'}, rejected: ${rejected.join(', ') || 'none'}`,
+            );
+            if (rejected.length > 0 || accepted.length === 0) {
+                throw new Error(
+                    `Email rejected by SMTP. Accepted: ${accepted.join(', ') || 'none'}, Rejected: ${rejected.join(', ') || 'none'}`,
+                );
+            }
             return info;
         } catch (error: any) {
             this.logger.error(`Error sending email to ${options.to}`, error);

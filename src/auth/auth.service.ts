@@ -3,6 +3,7 @@ import {
   UnauthorizedException,
   BadRequestException,
   ConflictException,
+  Logger,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -22,7 +23,8 @@ export class AuthService {
     private readonly userRepository: Repository<User>,
     private readonly jwtService: JwtService,
     private readonly emailService: EmailService,
-  ) { }
+  ) {}
+  private readonly logger = new Logger(AuthService.name);
 
   private generateSixDigitCode(): string {
     const code = crypto.randomInt(0, 1000000);
@@ -66,22 +68,27 @@ export class AuthService {
     } catch (error) {
       // Log the full error for debugging
       console.error('Registration error:', error);
-      
+
       // If it's already a known exception, re-throw it
       if (error instanceof ConflictException) {
         throw error;
       }
-      
+
       // For database errors, provide more context
-      if (error.code === '42703' || error.message?.includes('column') || error.message?.includes('does not exist')) {
+      if (
+        error.code === '42703' ||
+        error.message?.includes('column') ||
+        error.message?.includes('does not exist')
+      ) {
         throw new BadRequestException(
-          'Database schema error: Missing required columns. Please run the database schema fix script: npm run fix:schema'
+          'Database schema error: Missing required columns. Please run the database schema fix script: npm run fix:schema',
         );
       }
-      
+
       // Re-throw with original message
       throw new BadRequestException(
-        error.message || 'Failed to register user. Please check the server logs for details.'
+        error.message ||
+          'Failed to register user. Please check the server logs for details.',
       );
     }
 
@@ -95,34 +102,39 @@ export class AuthService {
     } catch (emailError: any) {
       // Log error but don't fail registration
       console.error('Failed to send verification email:', emailError);
-      
+
       // Check if it's an invalid email address error
       const errorMessage = emailError?.message || '';
-      if (errorMessage.includes('does not exist') || 
-          errorMessage.includes('NoSuchUser') ||
-          errorMessage.includes('550')) {
+      if (
+        errorMessage.includes('does not exist') ||
+        errorMessage.includes('NoSuchUser') ||
+        errorMessage.includes('550')
+      ) {
         // In development, return the token so user can verify manually
         if (process.env.NODE_ENV === 'development') {
           return {
             message: `User registered successfully. However, the email address ${user.email} does not exist or cannot receive emails. Please verify that the address is correct. You can verify manually using the code below.`,
             email: user.email,
             verificationCode: verificationCode, // Only in development
-            warning: 'The provided email address does not exist. Please verify it is correct.',
+            warning:
+              'The provided email address does not exist. Please verify it is correct.',
           };
         } else {
           // In production, still return success but warn about email
           return {
             message: `User registered successfully. However, we could not send the verification email to ${user.email}. Please verify that the email address is correct and contact the administrator if you need help.`,
             email: user.email,
-            warning: 'Unable to send verification email. Verify that the email address is correct.',
+            warning:
+              'Unable to send verification email. Verify that the email address is correct.',
           };
         }
       }
-      
+
       // For other email errors, still return token in development
       if (process.env.NODE_ENV === 'development') {
         return {
-          message: 'User registered successfully. Email verification failed, but you can verify manually using the code below.',
+          message:
+            'User registered successfully. Email verification failed, but you can verify manually using the code below.',
           email: user.email,
           verificationCode: verificationCode, // Only in development
         };
@@ -130,7 +142,8 @@ export class AuthService {
     }
 
     return {
-      message: 'User registered successfully. Please check your email for the verification code.',
+      message:
+        'User registered successfully. Please check your email for the verification code.',
       email: user.email,
     };
   }
@@ -142,13 +155,17 @@ export class AuthService {
     if (!user) {
       throw new UnauthorizedException('Invalid credentials');
     }
+    if (!user.isActive) {
+      throw new UnauthorizedException('User is blocked');
+    }
 
     const isPasswordValid = await user.validatePassword(password);
     if (!isPasswordValid) {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    const payload = { sub: user.id, email: user.email };
+    // Incluir el role en el payload del JWT
+    const payload = { sub: user.id, email: user.email, role: user.role };
     const accessToken = this.jwtService.sign(payload);
 
     return {
@@ -159,6 +176,8 @@ export class AuthService {
         name: user.name,
         lastName: user.lastName,
         email: user.email,
+        role: user.role,
+        isActive: user.isActive,
       },
     };
   }
@@ -171,6 +190,9 @@ export class AuthService {
       throw new BadRequestException('Email not found');
     }
 
+    this.logger.log(
+      `Password reset requested for ${email} (userId: ${user.id})`,
+    );
     const resetToken = crypto.randomBytes(32).toString('hex');
     const resetTokenExpiry = new Date(Date.now() + 3600000);
     const resetCode = this.generateSixDigitCode();
@@ -188,13 +210,13 @@ export class AuthService {
       resetCode,
       `${user.name} ${user.lastName}`,
     );
+    this.logger.log(`Password reset email sent to ${user.email}`);
 
     return {
       message: 'Password reset code sent to your email',
       resetToken:
         process.env.NODE_ENV === 'development' ? resetToken : undefined,
-      resetCode:
-        process.env.NODE_ENV === 'development' ? resetCode : undefined,
+      resetCode: process.env.NODE_ENV === 'development' ? resetCode : undefined,
     };
   }
 
@@ -207,7 +229,11 @@ export class AuthService {
         where: { resetToken: token },
       });
 
-      if (!user || !user.resetTokenExpiry || user.resetTokenExpiry < new Date()) {
+      if (
+        !user ||
+        !user.resetTokenExpiry ||
+        user.resetTokenExpiry < new Date()
+      ) {
         throw new BadRequestException('Invalid or expired token');
       }
     } else {
@@ -243,6 +269,7 @@ export class AuthService {
   async validateUser(userId: number) {
     const user = await this.userRepository.findOne({ where: { id: userId } });
     if (!user) {
+      this.logger.warn(`validateUser failed: user ${userId} not found`);
       throw new UnauthorizedException('User not found');
     }
 
@@ -251,6 +278,8 @@ export class AuthService {
       name: user.name,
       lastName: user.lastName,
       email: user.email,
+      role: user.role,
+      isActive: user.isActive,
     };
   }
 
@@ -259,7 +288,11 @@ export class AuthService {
       where: { verificationToken: token },
     });
 
-    if (!user || !user.verificationTokenExpiry || user.verificationTokenExpiry < new Date()) {
+    if (
+      !user ||
+      !user.verificationTokenExpiry ||
+      user.verificationTokenExpiry < new Date()
+    ) {
       throw new BadRequestException('Invalid or expired verification token');
     }
 
@@ -280,7 +313,11 @@ export class AuthService {
       where: { email },
     });
 
-    if (!user || !user.verificationCodeExpiry || user.verificationCodeExpiry < new Date()) {
+    if (
+      !user ||
+      !user.verificationCodeExpiry ||
+      user.verificationCodeExpiry < new Date()
+    ) {
       throw new BadRequestException('Invalid or expired verification code');
     }
 
