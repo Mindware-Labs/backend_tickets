@@ -216,7 +216,7 @@ export class LandlordsService {
       const total = counts.inbound + counts.outbound;
       return {
         id: yard.id,
-        name: yard.commonName || yard.name,
+        name: yard.name,
         inbound: counts.inbound,
         outbound: counts.outbound,
         total,
