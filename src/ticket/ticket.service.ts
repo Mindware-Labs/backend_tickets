@@ -103,7 +103,7 @@ export class TicketService {
     const skip = (page - 1) * limit;
 
     const [tickets, total] = await this.ticketRepository.findAndCount({
-      relations: ['assignedTo', 'customer', 'yard'],
+      relations: ['assignedTo', 'customer', 'yard', 'campaign'],
       order: { createdAt: 'DESC' },
       skip,
       take: limit,
@@ -121,7 +121,7 @@ export class TicketService {
   async findOne(id: number) {
     const ticket = await this.ticketRepository.findOne({
       where: { id },
-      relations: ['assignedTo', 'customer', 'yard'],
+      relations: ['assignedTo', 'customer', 'yard', 'campaign'],
     });
     if (!ticket) {
       throw new NotFoundException(`Ticket with id ${id} not found`);
