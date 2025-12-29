@@ -1,3 +1,4 @@
+
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
@@ -7,10 +8,7 @@ import * as path from 'path';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
-
-  // 👇 ESTA ES LA LÍNEA MÁGICA QUE FALTABA
-  app.setGlobalPrefix('api'); 
-  // Ahora todas las rutas empezarán por /api (ej: /api/users, /api/tickets)
+  
 
   app.useStaticAssets(path.join(process.cwd(), 'uploads'), {
     prefix: '/uploads',
@@ -45,19 +43,23 @@ async function bootstrap() {
     .addTag('knowledge', 'Knowledge base management')
     .addTag('webhooks', 'Integration webhooks')
     .build();
-  
   const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api/docs', app, document); // He movido la doc a /api/docs para no chocar
+  SwaggerModule.setup('api', app, document);
 
+  // ⚠️ CLAVE PARA RAILWAY: Usar PORT de entorno y ESCUCHAR EN 0.0.0.0
   const port = process.env.PORT || '3000';
   
+  // Añadir manejo de señales para shutdown limpio
   process.on('SIGTERM', () => {
     console.log('SIGTERM received. Closing HTTP server.');
     app.close();
   });
 
-  await app.listen(port, '0.0.0.0');
+  await app.listen(port, '0.0.0.0');  // ← ESTA LÍNEA ES LA CLAVE
   
-  console.log(`✅ Application is running on: http://0.0.0.0:${port}/api`);
+  console.log(`✅ Application is running on: http://0.0.0.0:${port}`);
+  console.log(`📚 Swagger documentation: http://0.0.0.0:${port}/api`);
+  console.log(`🌍 Health check: http://0.0.0.0:${port}/health`);
+  console.log(`📞 Aircall webhook: http://0.0.0.0:${port}/webhooks/aircall`);
 }
 bootstrap();
