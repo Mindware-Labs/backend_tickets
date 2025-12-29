@@ -96,8 +96,8 @@ export class AircallService {
       return;
     }
 
-    // Only create a ticket when the call ends
-    if (eventType !== 'call.ended') {
+    // Only create a ticket when the call ends or is missed
+    if (eventType !== 'call.ended' && eventType !== 'call.missed') {
       this.logger.log(
         `Skipping ticket creation for event type: ${eventType}. Only processing call.ended events.`,
       );
@@ -124,7 +124,9 @@ export class AircallService {
     try {
       this.logger.log(`Creating ticket from Aircall webhook ${data.id}`);
 
-      const direction = this.mapDirection(data.direction);
+      const direction = this.mapDirection(
+        eventType === 'call.missed' ? 'missed' : data.direction,
+      );
 
       // fromNumber: caller
       // inboundNumber: recipient
@@ -237,7 +239,10 @@ export class AircallService {
 
         agentId: agentId,
 
-        status: TicketStatus.IN_PROGRESS,
+        status:
+          eventType === 'call.missed'
+            ? TicketStatus.OPEN
+            : TicketStatus.IN_PROGRESS,
         priority: TicketPriority.LOW,
 
         aircallId: data.id?.toString(),
@@ -265,7 +270,8 @@ export class AircallService {
     }
   }
   private mapDirection(direction: string): 'INBOUND' | 'OUTBOUND' {
-    return direction === 'inbound' ? 'INBOUND' : 'OUTBOUND';
+    const normalized = (direction || '').toLowerCase();
+    return normalized === 'inbound' ? 'INBOUND' : 'OUTBOUND';
   }
 
   private async findOrCreateAgentUser(name: string, email: string) {

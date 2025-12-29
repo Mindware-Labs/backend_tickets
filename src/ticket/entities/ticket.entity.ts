@@ -32,6 +32,7 @@ export enum TicketPriority {
 export enum CallDirection {
   INBOUND = 'INBOUND',
   OUTBOUND = 'OUTBOUND',
+  MISSED = 'MISSED',
 }
 
 export enum TicketDisposition {
