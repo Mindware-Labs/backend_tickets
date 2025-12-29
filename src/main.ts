@@ -1,25 +1,3 @@
-// ===== PRIMERO: Aplicar el fix para AWS Logger =====
-import { disableAWSFileLogging } from './aws-logger-fix';
-disableAWSFileLogging();
-// ===== FIN DEL FIX =====
-
-// ===== SEGUNDO: Interceptar errores de filesystem =====
-process.on('uncaughtException', (error: any) => {
-  if (error.code === 'EROFS' && error.path && error.path.includes('.log')) {
-    console.warn('[SERVERLESS] Log file write intercepted:', error.path);
-    return;
-  }
-  console.error('Uncaught Exception:', error);
-  process.exit(1);
-});
-
-process.on('unhandledRejection', (reason: any) => {
-  if (reason?.code === 'EROFS' && reason?.path?.includes('.log')) {
-    console.warn('[SERVERLESS] Async log write intercepted');
-    return;
-  }
-  console.error('Unhandled Rejection:', reason);
-});
 
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
