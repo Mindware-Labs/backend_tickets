@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { Resend } from 'resend';
+import * as nodemailer from 'nodemailer';
 import {
     passwordResetCodeTemplate,
     welcomeEmailTemplate,
@@ -25,115 +25,111 @@ interface EmailOptions {
 
 @Injectable()
 export class EmailService {
-    private resend: Resend;
+    private transporter: nodemailer.Transporter;
     private readonly logger = new Logger(EmailService.name);
     private readonly fromEmail: string;
     private readonly frontendUrl: string;
 
     constructor(private configService: ConfigService) {
-        // Configura Resend usando la API key
-        const resendApiKey = this.configService.get<string>('RESEND_API_KEY');
-        
-        if (!resendApiKey) {
-            this.logger.warn('RESEND_API_KEY is missing. Emails will fail.');
-        } else {
-            this.resend = new Resend(resendApiKey);
-        }
-        
-        // Configurar remitente
+        const host = this.configService.get<string>('EMAIL_HOST');
+        const port = this.configService.get<number>('EMAIL_PORT');
+        const user = this.configService.get<string>('EMAIL_USER');
+        const pass = this.configService.get<string>('EMAIL_PASSWORD');
+
+        // Ensure the sender format is correct
         const emailFrom = this.configService.get<string>('EMAIL_FROM');
-        this.fromEmail = emailFrom || 'onboarding@resend.dev';
-        
-        this.frontendUrl = this.configService.get<string>('FRONTEND_URL') || 'http://localhost:3000';
-        
-        this.logger.log(`EmailService initialized with sender: ${this.fromEmail}`);
+        if (emailFrom) {
+            // If it already has the correct format, use it
+            this.fromEmail = emailFrom.includes('<') ? emailFrom : `"Ticketing System" <${emailFrom}>`;
+        } else {
+            // If not configured, use EMAIL_USER as a fallback
+            this.fromEmail = user ? `"Ticketing System" <${user}>` : '"Ticketing System" <noreply@tickets.com>';
+        }
+        this.frontendUrl =
+            this.configService.get<string>('FRONTEND_URL') || 'http://localhost:3000';
+
+        if (!host || !user || !pass) {
+            this.logger.warn(
+                'Email configuration is missing. Emails will not be sent correctly.',
+            );
+        }
+
+        this.transporter = nodemailer.createTransport({
+            host: host || 'smtp.example.com',
+            port: port || 587,
+            secure: port === 465,
+            auth: {
+                user: user,
+                pass: pass,
+            },
+            // Additional settings to improve delivery
+            tls: {
+                rejectUnauthorized: false,
+            },
+            // Increased timeouts to reduce errors
+            connectionTimeout: 10000,
+            greetingTimeout: 10000,
+            socketTimeout: 10000,
+        });
     }
 
     private async sendEmail(options: EmailOptions): Promise<any> {
-        // Si no hay API key, solo log y retorna sin error
-        if (!this.resend) {
-            this.logger.warn(`Skipping email to ${options.to} - RESEND_API_KEY not configured`);
-            this.logger.debug(`Email would have been: Subject: ${options.subject}`);
-            return { id: 'simulated', message: 'Email skipped - no API key' };
-        }
+        const mailOptions = {
+            from: this.fromEmail,
+            to: options.to,
+            subject: options.subject,
+            html: options.html,
+            text: options.text,
+            attachments: options.attachments,
+            // Headers to reduce spam flags and improve delivery
+            // Note: Do not use 'Auto-Submitted' since Gmail treats it as a notification
+            headers: {
+                'X-Priority': '1',
+                'X-MSMail-Priority': 'High',
+                'Importance': 'high',
+                'X-Mailer': 'Ticketing System',
+                'MIME-Version': '1.0',
+                'X-Auto-Response-Suppress': 'All',
+            },
+            // Additional settings to improve delivery
+            priority: 'high' as 'high' | 'normal' | 'low',
+            date: new Date(),
+            // Reply-To should match the sender to avoid issues
+            replyTo: this.fromEmail,
+        };
 
         try {
-            const emailData: any = {
-                from: this.fromEmail,
-                to: options.to,
-                subject: options.subject,
-                html: options.html,
-            };
-
-            // Agregar texto plano si existe
-            if (options.text) {
-                emailData.text = options.text;
+            const info = await this.transporter.sendMail(mailOptions);
+            const accepted = (info?.accepted || []).map(String);
+            const rejected = (info?.rejected || []).map(String);
+            this.logger.log(
+                `Email sent successfully to ${options.to}: ${info?.messageId || 'N/A'}`,
+            );
+            this.logger.log(
+                `Email delivery status - accepted: ${accepted.join(', ') || 'none'}, rejected: ${rejected.join(', ') || 'none'}`,
+            );
+            if (rejected.length > 0 || accepted.length === 0) {
+                throw new Error(
+                    `Email rejected by SMTP. Accepted: ${accepted.join(', ') || 'none'}, Rejected: ${rejected.join(', ') || 'none'}`,
+                );
             }
-
-            // Manejar archivos adjuntos (Resend los espera en base64)
-            if (options.attachments && options.attachments.length > 0) {
-                emailData.attachments = options.attachments.map(att => ({
-                    filename: att.filename,
-                    content: att.content.toString('base64'),
-                    contentType: att.contentType,
-                }));
-            }
-
-            this.logger.log(`Sending email to: ${options.to}, Subject: ${options.subject}`);
-            
-            const { data, error } = await this.resend.emails.send(emailData);
-
-            if (error) {
-                this.logger.error(`Resend API error for ${options.to}:`, error);
-                
-                // MANEJO SIMPLIFICADO DE ERRORES - Evita comparaciones de tipos problemáticas
-                const errorStr = JSON.stringify(error).toLowerCase();
-                const errorMessage = typeof error === 'object' && error !== null 
-                    ? (error as any).message || String(error)
-                    : String(error);
-                
-                // Buscar patrones en el mensaje de error
-                if (errorStr.includes('invalid_email') || 
-                    errorStr.includes('invalid email') || 
-                    errorMessage.toLowerCase().includes('invalid')) {
-                    throw new Error(`Invalid email address: ${options.to}`);
-                }
-                
-                if (errorStr.includes('rate_limit') || errorStr.includes('rate limit')) {
-                    throw new Error('Rate limit exceeded. Please try again later.');
-                }
-                
-                if (errorStr.includes('unauthorized') || errorStr.includes('api key')) {
-                    throw new Error('Invalid API key. Please check your RESEND_API_KEY configuration.');
-                }
-                
-                // Error genérico
-                throw new Error(`Failed to send email: ${errorMessage}`);
-            }
-
-            this.logger.log(`✅ Email sent successfully to ${options.to}, ID: ${data?.id}`);
-            return data;
+            return info;
         } catch (error: any) {
-            this.logger.error(`❌ Error sending email to ${options.to}:`, error.message);
+            this.logger.error(`Error sending email to ${options.to}`, error);
             
-            // Detectar errores específicos de email en el mensaje
-            const errorMsg = error.message?.toLowerCase() || '';
-            if (errorMsg.includes('invalid') && errorMsg.includes('email')) {
-                throw new Error(`The email address ${options.to} is invalid. Please verify the address.`);
-            }
-            if (errorMsg.includes('rate limit')) {
-                throw new Error('Rate limit exceeded. Please try again later.');
-            }
-            if (errorMsg.includes('unauthorized') || errorMsg.includes('api key')) {
-                throw new Error('Invalid API key configuration. Please check your RESEND_API_KEY.');
+            // Detect specific Gmail errors
+            if (error.responseCode === 550 || error.code === 'EENVELOPE' || 
+                (error.message && error.message.includes('550'))) {
+                const errorMessage = error.message || '';
+                if (errorMessage.includes('does not exist') || errorMessage.includes('NoSuchUser')) {
+                    throw new Error(`The email address ${options.to} does not exist or cannot receive emails. Please verify that the address is correct.`);
+                }
             }
             
-            // Re-lanzar el error para que lo maneje el caller
             throw error;
         }
     }
 
-    // MÉTODOS PÚBLICOS (mantén los mismos que ya tenías)
     async sendPasswordResetEmail(to: string, resetCode: string, userName?: string) {
         const html = passwordResetCodeTemplate(resetCode, userName);
 
@@ -254,7 +250,7 @@ export class EmailService {
     ) {
         return this.sendEmail({
             to,
-            subject: subject || 'Landlord Report',
+            subject,
             html,
             attachments: [
                 {
@@ -264,31 +260,5 @@ export class EmailService {
                 },
             ],
         });
-    }
-
-    /**
-     * Método simple para verificar la conexión
-     */
-    async testConnection(): Promise<{ success: boolean; message: string }> {
-        try {
-            if (!this.resend) {
-                return { 
-                    success: false, 
-                    message: 'RESEND_API_KEY not configured' 
-                };
-            }
-
-            // Verificamos que la API key sea válida intentando un email simple
-            // (pero no lo enviamos realmente para no gastar cuota)
-            return { 
-                success: true, 
-                message: `Resend configured with sender: ${this.fromEmail}` 
-            };
-        } catch (error) {
-            return { 
-                success: false, 
-                message: `Connection test failed: ${error.message}` 
-            };
-        }
     }
 }
