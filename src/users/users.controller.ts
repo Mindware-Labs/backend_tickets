@@ -1,8 +1,21 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  Query,              // <--- Importante
+  ParseIntPipe,       // <--- Importante para evitar el crash
+  DefaultValuePipe,   // <--- Importante para valores por defecto
+} from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { ApiQuery, ApiTags } from '@nestjs/swagger'; // Opcional, para documentación
 
+@ApiTags('users')
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
@@ -12,10 +25,18 @@ export class UsersController {
     return this.usersService.createWithInvite(createUserDto);
   }
 
+  // 👇 AQUÍ ESTÁ EL ARREGLO
   @Get()
-  findAll() {
-    return this.usersService.findAll();
+  @ApiQuery({ name: 'page', required: false, type: Number })
+  @ApiQuery({ name: 'limit', required: false, type: Number })
+  findAll(
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+    @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
+  ) {
+    // Ahora le pasamos los números limpios al servicio
+    return this.usersService.findAll(page, limit);
   }
+  // 👆 FIN DEL ARREGLO
 
   @Get(':id')
   findOne(@Param('id') id: string) {

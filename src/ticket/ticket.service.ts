@@ -99,24 +99,30 @@ export class TicketService {
     return savedTicket;
   }
 
+  // 👇 ESTA ES LA FUNCIÓN QUE DABA PROBLEMAS
   async findAll(page: number = 1, limit: number = 10) {
-    const skip = (page - 1) * limit;
+    // Blindaje: Convertimos a Number explícitamente por si llegan como string
+    const safePage = Number(page) || 1;
+    const safeLimit = Number(limit) || 10;
+    
+    const skip = (safePage - 1) * safeLimit;
 
     const [tickets, total] = await this.ticketRepository.findAndCount({
       relations: ['assignedTo', 'customer', 'yard', 'campaign'],
       order: { createdAt: 'DESC' },
       skip,
-      take: limit,
+      take: safeLimit, // TypeORM necesita un número real aquí
     });
 
     return {
       data: tickets,
       total,
-      page,
-      limit,
-      totalPages: Math.ceil(total / limit),
+      page: safePage,
+      limit: safeLimit,
+      totalPages: Math.ceil(total / safeLimit),
     };
   }
+  // 👆 FIN DEL ARREGLO
 
   async findOne(id: number) {
     const ticket = await this.ticketRepository.findOne({

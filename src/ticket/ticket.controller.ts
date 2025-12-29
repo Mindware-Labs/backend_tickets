@@ -12,6 +12,8 @@ import {
   Res,
   UseInterceptors,
   UploadedFiles,
+  ParseIntPipe,       // <--- NUEVO IMPORT
+  DefaultValuePipe,   // <--- NUEVO IMPORT
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -55,6 +57,7 @@ export class TicketController {
     return this.ticketService.create(createTicketDto, userId);
   }
 
+  // 👇 AQUÍ ESTABA EL PROBLEMA DEL ERROR 500 EN PAGINACIÓN
   @Get()
   @ApiOperation({ summary: 'Get a paginated list of tickets' })
   @ApiQuery({
@@ -71,11 +74,14 @@ export class TicketController {
   })
   @ApiResponse({ status: 200, description: 'Ticket list' })
   findAll(
-    @Query('page') page: string = '1',
-    @Query('limit') limit: string = '10',
+    // DefaultValuePipe(1) pone un 1 si no envían nada
+    // ParseIntPipe convierte "500" (string) a 500 (number) automáticamente
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+    @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
   ) {
-    return this.ticketService.findAll(+page, +limit);
+    return this.ticketService.findAll(page, limit);
   }
+  // 👆 FIN DE LA CORRECCIÓN
 
   @Get('attachments/download')
   @ApiOperation({ summary: 'Download ticket attachment' })

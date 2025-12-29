@@ -83,9 +83,29 @@ export class UsersService {
     return this.userRepo.findOneBy({ email });
   }
 
-  findAll() {
-    return this.userRepo.find();
+  // 👇 AQUÍ ESTÁ LA CORRECCIÓN DE PAGINACIÓN
+  async findAll(page: number = 1, limit: number = 10) {
+    // Blindaje: Convertimos a Number explícitamente
+    const safePage = Number(page) || 1;
+    const safeLimit = Number(limit) || 10;
+    const skip = (safePage - 1) * safeLimit;
+
+    // Usamos findAndCount para obtener data + total
+    const [users, total] = await this.userRepo.findAndCount({
+      skip,
+      take: safeLimit,
+      order: { id: 'DESC' }, // Ordenar por más recientes
+    });
+
+    return {
+      data: users,
+      total,
+      page: safePage,
+      limit: safeLimit,
+      totalPages: Math.ceil(total / safeLimit),
+    };
   }
+  // 👆 FIN DE LA CORRECCIÓN
 
   async findOne(id: number) {
     const user = await this.userRepo.findOneBy({ id });
