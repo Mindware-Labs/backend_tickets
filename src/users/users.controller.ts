@@ -16,7 +16,7 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { ApiQuery, ApiTags } from '@nestjs/swagger'; // Opcional, para documentación
 
 @ApiTags('users')
-@Controller('api/users')
+@Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 

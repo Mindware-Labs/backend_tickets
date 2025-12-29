@@ -44,7 +44,7 @@ type UploadedAttachmentFile = {
 };
 
 @ApiTags('tickets')
-@Controller('api/tickets')
+@Controller('tickets')
 export class TicketController {
   constructor(private readonly ticketService: TicketService) {}
 
