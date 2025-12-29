@@ -36,7 +36,7 @@ async function bootstrap() {
   });
 
   app.enableCors({
-    origin: '*', // In production, specify allowed domains
+    origin: '*',
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     credentials: true,
   });
@@ -67,12 +67,20 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, document);
 
-  const port = process.env.PORT ?? 3000;
-  await app.listen(port);
-  console.log(` Application is running on: http://localhost:${port}`);
-  console.log(` Swagger documentation: http://localhost:${port}/api`);
-  console.log(
-    ` Aircall webhook endpoint: http://localhost:${port}/webhooks/aircall`,
-  );
+  // ⚠️ CLAVE PARA RAILWAY: Usar PORT de entorno y ESCUCHAR EN 0.0.0.0
+  const port = process.env.PORT || '3000';
+  
+  // Añadir manejo de señales para shutdown limpio
+  process.on('SIGTERM', () => {
+    console.log('SIGTERM received. Closing HTTP server.');
+    app.close();
+  });
+
+  await app.listen(port, '0.0.0.0');  // ← ESTA LÍNEA ES LA CLAVE
+  
+  console.log(`✅ Application is running on: http://0.0.0.0:${port}`);
+  console.log(`📚 Swagger documentation: http://0.0.0.0:${port}/api`);
+  console.log(`🌍 Health check: http://0.0.0.0:${port}/health`);
+  console.log(`📞 Aircall webhook: http://0.0.0.0:${port}/webhooks/aircall`);
 }
 bootstrap();
