@@ -19,6 +19,10 @@ import { CampaignService } from './campaign.service';
 import { CreateCampaignDto } from './dto/create-campaign.dto';
 import { UpdateCampaignDto } from './dto/update-campaign.dto';
 import { IdValidationPipe } from '../common/id-validation.pipe';
+import { Auth } from '../auth/decorators/auth.decorator';
+import { Role } from '../auth/enums/role.emun';
+import { UseGuards } from '@nestjs/common';
+import { AuthGuard } from '../auth/guard/auth.guard';
 
 @ApiTags('campaigns')
 @Controller('campaign')
@@ -37,9 +41,9 @@ export class CampaignController {
   })
   @ApiResponse({
     status: 400,
-    description:
-      'Invalid data (e.g., name required, yardaId must be positive)',
+    description: 'Invalid data (e.g., name required, yardaId must be positive)',
   })
+  @Auth(Role.Admin)
   create(@Body() createCampaignDto: CreateCampaignDto) {
     return this.campaignService.create(createCampaignDto);
   }
@@ -78,6 +82,7 @@ export class CampaignController {
     status: 200,
     description: 'List of campaigns with associated yards',
   })
+  @UseGuards(AuthGuard)
   findAll(
     @Query('page') page: string = '1',
     @Query('limit') limit: string = '10',
@@ -105,6 +110,7 @@ export class CampaignController {
     description: 'Campaign found with its associated yard',
   })
   @ApiResponse({ status: 404, description: 'Campaign not found' })
+  @UseGuards(AuthGuard)
   findOne(@Param('id', IdValidationPipe) id: string) {
     return this.campaignService.findOne(+id);
   }
@@ -126,6 +132,7 @@ export class CampaignController {
     status: 400,
     description: 'Invalid data (e.g., yardaId must be a positive number)',
   })
+  @Auth(Role.Admin)
   update(
     @Param('id', IdValidationPipe) id: string,
     @Body() updateCampaignDto: UpdateCampaignDto,
@@ -138,6 +145,7 @@ export class CampaignController {
   @ApiParam({ name: 'id', type: Number, description: 'Campaign ID' })
   @ApiResponse({ status: 200, description: 'Campaign deleted' })
   @ApiResponse({ status: 404, description: 'Campaign not found' })
+  @Auth(Role.Admin)
   remove(@Param('id', IdValidationPipe) id: string) {
     return this.campaignService.remove(+id);
   }

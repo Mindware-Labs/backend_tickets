@@ -7,6 +7,7 @@ import {
   Param,
   Delete,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -19,6 +20,9 @@ import { CustomersService } from './customers.service';
 import { CreateCustomerDto } from './dto/create-customer.dto';
 import { UpdateCustomerDto } from './dto/update-customer.dto';
 import { IdValidationPipe } from 'src/common/id-validation.pipe';
+import { Auth } from '../auth/decorators/auth.decorator';
+import { Role } from '../auth/enums/role.emun';
+import { AuthGuard } from '../auth/guard/auth.guard';
 
 @ApiTags('customers')
 @Controller('customers')
@@ -29,6 +33,7 @@ export class CustomersController {
   @ApiOperation({ summary: 'Create a new customer' })
   @ApiResponse({ status: 201, description: 'Customer created successfully' })
   @ApiResponse({ status: 400, description: 'Invalid data' })
+  @Auth(Role.Admin)
   create(@Body() createCustomerDto: CreateCustomerDto) {
     return this.customersService.create(createCustomerDto);
   }
@@ -48,6 +53,7 @@ export class CustomersController {
     description: 'Number of items per page',
   })
   @ApiResponse({ status: 200, description: 'Customer list' })
+  @UseGuards(AuthGuard)
   findAll(
     @Query('page') page: string = '1',
     @Query('limit') limit: string = '10',
@@ -60,6 +66,7 @@ export class CustomersController {
   @ApiParam({ name: 'id', type: Number, description: 'Customer ID' })
   @ApiResponse({ status: 200, description: 'Customer found' })
   @ApiResponse({ status: 404, description: 'Customer not found' })
+  @UseGuards(AuthGuard)
   findOne(@Param('id', IdValidationPipe) id: string) {
     return this.customersService.findOne(+id);
   }
@@ -69,6 +76,7 @@ export class CustomersController {
   @ApiParam({ name: 'id', type: Number, description: 'Customer ID' })
   @ApiResponse({ status: 200, description: 'Customer updated' })
   @ApiResponse({ status: 404, description: 'Customer not found' })
+  @Auth(Role.Admin)
   update(
     @Param('id', IdValidationPipe) id: string,
     @Body() updateCustomerDto: UpdateCustomerDto,
@@ -81,6 +89,7 @@ export class CustomersController {
   @ApiParam({ name: 'id', type: Number, description: 'Customer ID' })
   @ApiResponse({ status: 200, description: 'Customer deleted' })
   @ApiResponse({ status: 404, description: 'Customer not found' })
+  @Auth(Role.Admin)
   remove(@Param('id', IdValidationPipe) id: string) {
     return this.customersService.remove(+id);
   }

@@ -10,9 +10,10 @@ import {
 } from '../../ticket/entities/ticket.entity';
 import { Customer } from '../../customers/entities/customer.entity';
 import { Agent } from '../../agents/entities/agent.entity';
-import { User } from '../../auth/entities/user.entity';
-import { UserRole } from '../../auth/entities/user-role.enum';
 import { AircallWebhookDto, AircallCallData } from './dto/aircall-webhook.dto';
+import { User } from '../../users/entities/user.entity';
+// Si necesitas UserRole, importa así:
+// import { UserRole } from '../../users/entities/user-role.enum';
 
 @Injectable()
 export class AircallService {
@@ -193,7 +194,7 @@ export class AircallService {
         }> = [];
         if (data.user.id) where.push({ aircallId: data.user.id.toString() });
         if (data.user.email) where.push({ email: data.user.email });
-        if (user?.id) where.push({ userId: user.id });
+        //if (user?.id) where.push({ userId: user.id });
         let agent = where.length
           ? await this.agentRepo.findOne({ where })
           : null;
@@ -205,15 +206,15 @@ export class AircallService {
             email: data.user.email,
             aircallId: data.user.id?.toString(),
             isActive: true,
-            userId: user?.id ?? null,
+            //userId: user?.id ?? null,
           });
         } else {
           agent.name = data.user.name || agent.name;
           agent.email = data.user.email || agent.email;
           agent.aircallId = data.user.id?.toString() || agent.aircallId;
-          if (user?.id && !agent.userId) {
-            agent.userId = user.id;
-          }
+          //if (user?.id && !agent.userId) {
+          //agent.userId = user.id;
+          // }
         }
 
         await this.agentRepo.save(agent);
@@ -264,12 +265,15 @@ export class AircallService {
       throw error;
     }
   }
+  findOrCreateAgentUser(name: string, email: string) {
+    throw new Error('Method not implemented.');
+  }
 
   private mapDirection(direction: string): 'INBOUND' | 'OUTBOUND' {
     return direction === 'inbound' ? 'INBOUND' : 'OUTBOUND';
   }
 
-  private async findOrCreateAgentUser(name: string, email: string) {
+  /*private async findOrCreateAgentUser(name: string, email: string) {
     const existing = await this.userRepo.findOne({ where: { email } });
     if (existing) {
       if (existing.role !== UserRole.AGENT) {
@@ -294,5 +298,5 @@ export class AircallService {
     });
 
     return this.userRepo.save(user);
-  }
+  } */
 }

@@ -8,6 +8,7 @@ import {
     ticketUpdatedTemplate,
     passwordChangedTemplate,
     accountVerificationCodeTemplate,
+    accountVerificationTemplate,
 } from './templates/email.templates';
 
 interface EmailOptions {
@@ -223,6 +224,21 @@ export class EmailService {
             subject: '🔐 Verify Your Account - Ticketing System',
             html,
             text: `Hi ${userName}, please verify your account using the following code: ${verificationCode}. This code expires in 15 minutes.`,
+        });
+    }
+
+    async sendAccountVerificationLink(
+        to: string,
+        verificationLink: string,
+        userName: string,
+    ) {
+        const html = accountVerificationTemplate(verificationLink, userName);
+
+        return this.sendEmail({
+            to,
+            subject: '🔐 Verify Your Account - Ticketing System',
+            html,
+            text: `Hi ${userName}, please verify your account using this link: ${verificationLink}. This link expires in 24 hours.`,
         });
     }
 

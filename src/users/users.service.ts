@@ -1,118 +1,131 @@
-import {
-  ConflictException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import * as crypto from 'crypto';
-import { User } from '../auth/entities/user.entity';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { AuthService } from '../auth/auth.service';
+import { InjectRepository } from '@nestjs/typeorm';
+import { User } from './entities/user.entity';
+import { Repository } from 'typeorm';
+import * as bcryptjs from 'bcryptjs';
+import * as crypto from 'crypto';
+import { EmailService } from '../email/email.service';
 
 @Injectable()
 export class UsersService {
-  constructor(
-    @InjectRepository(User)
-    private readonly userRepo: Repository<User>,
-    private readonly authService: AuthService,
-  ) {}
-
-  private sanitizeUser(user: User) {
-    const {
-      password,
-      resetToken,
-      resetTokenExpiry,
-      resetCode,
-      resetCodeExpiry,
-      verificationToken,
-      verificationTokenExpiry,
-      verificationCode,
-      verificationCodeExpiry,
-      ...safe
-    } = user;
-    return safe;
-  }
+  @InjectRepository(User)
+  private readonly userRepo: Repository<User>;
+  constructor(private readonly emailService: EmailService) {}
 
   private generateRandomPassword() {
-    return crypto.randomBytes(9).toString('base64').replace(/[^a-zA-Z0-9]/g, '').slice(0, 12);
+    return crypto.randomBytes(6).toString('base64url').slice(0, 12);
   }
 
-  async findAll(page: number = 1, limit: number = 10) {
-    const skip = (page - 1) * limit;
-    const [users, total] = await this.userRepo.findAndCount({
-      order: { createdAt: 'DESC' },
-      skip,
-      take: limit,
+  private generateSixDigitCode(): string {
+    const code = crypto.randomInt(0, 1000000);
+    return code.toString().padStart(6, '0');
+  }
+
+  create(createUserDto: Partial<User>) {
+    return this.userRepo.save(createUserDto);
+  }
+
+  async createWithInvite(createUserDto: Partial<User>) {
+    const email = (createUserDto.email || '').trim().toLowerCase();
+    if (!email) {
+      throw new BadRequestException('Email is required');
+    }
+    const name = (createUserDto.name || '').trim();
+    const lastName = (createUserDto.lastName || '').trim();
+    const role = createUserDto.role || 'agent';
+
+    const existing = await this.findOneByEmail(email);
+    if (existing) {
+      throw new BadRequestException('User with this email already exists');
+    }
+
+    const password = this.generateRandomPassword();
+    const hashedPassword = await bcryptjs.hash(password, 10);
+
+    const user = this.userRepo.create({
+      ...createUserDto,
+      email,
+      name,
+      lastName,
+      role,
+      password: hashedPassword,
+      emailVerified: true,
+      isActive: createUserDto.isActive ?? true,
     });
+
+    // Persist user first
+    await this.userRepo.save(user);
+
+    // Prepare reset flow so the user sets their own password
+    const resetToken = crypto.randomBytes(32).toString('hex');
+    const resetTokenExpiry = new Date(Date.now() + 60 * 60 * 1000);
+    const resetCode = this.generateSixDigitCode();
+    const resetCodeExpiry = new Date(Date.now() + 10 * 60 * 1000);
+
+    user.resetToken = resetToken;
+    user.resetTokenExpiry = resetTokenExpiry;
+    user.resetCode = resetCode;
+    user.resetCodeExpiry = resetCodeExpiry;
+
+    await this.userRepo.save(user);
+
     return {
-      data: users.map((user) => this.sanitizeUser(user)),
-      total,
-      page,
-      limit,
-      totalPages: Math.ceil(total / limit),
+      message:
+        'User created. Share the reset code so the user can set their password via forgot-password.',
+      email: user.email,
+      reset: { resetCode },
     };
+  }
+
+  findOneByEmail(email: string) {
+    return this.userRepo.findOneBy({ email });
+  }
+
+  findAll() {
+    return this.userRepo.find();
   }
 
   async findOne(id: number) {
-    const user = await this.userRepo.findOne({ where: { id } });
+    const user = await this.userRepo.findOneBy({ id });
     if (!user) {
-      throw new NotFoundException(`User with ID ${id} not found`);
+      throw new NotFoundException('User not found');
     }
-    return this.sanitizeUser(user);
+    return user;
   }
 
-  async create(createUserDto: CreateUserDto) {
-    const existing = await this.userRepo.findOne({
-      where: { email: createUserDto.email },
+  findOneByResetToken(resetToken: string) {
+    return this.userRepo.findOne({
+      where: { resetToken },
     });
-    if (existing) {
-      throw new ConflictException('Email already in use');
-    }
+  }
 
-    const randomPassword = this.generateRandomPassword();
-    const user = this.userRepo.create({
-      ...createUserDto,
-      password: randomPassword,
-      isActive: true,
+  findOneByVerificationToken(verificationToken: string) {
+    return this.userRepo.findOne({
+      where: { verificationToken },
     });
-    const saved = await this.userRepo.save(user);
+  }
 
-    let resetInfo: any = null;
-    try {
-      resetInfo = await this.authService.forgotPassword({
-        email: saved.email,
-      });
-    } catch (error: any) {
-      resetInfo = {
-        message: 'User created, but reset email failed to send.',
-        error: error?.message || 'Reset email failed.',
-      };
-    }
+  save(user: User) {
+    return this.userRepo.save(user);
+  }
 
-    return {
-      user: this.sanitizeUser(saved),
-      reset: resetInfo,
-    };
+  async blockUser(id: number, isActive: boolean) {
+    const user = await this.findOne(id);
+    user.isActive = isActive;
+    return this.userRepo.save(user);
   }
 
   async update(id: number, updateUserDto: UpdateUserDto) {
-    const user = await this.userRepo.findOne({ where: { id } });
-    if (!user) {
-      throw new NotFoundException(`User with ID ${id} not found`);
-    }
+    const user = await this.findOne(id);
     Object.assign(user, updateUserDto);
-    const saved = await this.userRepo.save(user);
-    return this.sanitizeUser(saved);
+    return this.userRepo.save(user);
   }
 
   async remove(id: number) {
-    const user = await this.userRepo.findOne({ where: { id } });
-    if (!user) {
-      throw new NotFoundException(`User with ID ${id} not found`);
-    }
+    const user = await this.findOne(id);
     await this.userRepo.remove(user);
-    return { message: `User with ID ${id} has been removed` };
+    return { message: 'User removed successfully' };
   }
 }

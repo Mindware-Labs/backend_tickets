@@ -13,9 +13,11 @@ export const typeOrmConfig = (
   password: configService.get('DATABASE_PASS'),
   database: configService.get('DATABASE_NAME'), */
   logging: false,
-  ssl: {
-    rejectUnauthorized: false, // For Neon/Render usually needed
-  },
+  ssl:
+    configService.get('DATABASE_URL')?.includes('localhost') ||
+    configService.get('DATABASE_URL')?.includes('127.0.0.1')
+      ? false
+      : { rejectUnauthorized: false },
   autoLoadEntities: true,
   synchronize: true,
 });

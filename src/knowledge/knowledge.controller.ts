@@ -13,6 +13,7 @@ import {
   UploadedFile,
   NotFoundException,
   Res,
+  UseGuards,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -35,6 +36,9 @@ import {
   storeUploadedFile,
 } from '../common/storage';
 import type { Response } from 'express';
+import { Auth } from '../auth/decorators/auth.decorator';
+import { Role } from '../auth/enums/role.emun';
+import { AuthGuard } from '../auth/guard/auth.guard';
 
 type UploadedKnowledgeFile = {
   filename: string;
@@ -59,6 +63,7 @@ export class KnowledgeController {
     status: 400,
     description: 'Invalid data',
   })
+  @Auth(Role.Admin)
   create(@Body() createKnowledgeDto: CreateKnowledgeDto) {
     return this.knowledgeService.create(createKnowledgeDto);
   }
@@ -86,6 +91,7 @@ export class KnowledgeController {
     status: 201,
     description: 'Knowledge article created successfully',
   })
+  @Auth(Role.Admin)
   async createWithFile(
     @Body() createKnowledgeDto: CreateKnowledgeDto,
     @UploadedFile() file?: UploadedKnowledgeFile,
@@ -157,6 +163,7 @@ export class KnowledgeController {
     status: 400,
     description: 'Invalid data',
   })
+  @Auth(Role.Admin)
   update(
     @Param('id', IdValidationPipe) id: string,
     @Body() updateKnowledgeDto: UpdateKnowledgeDto,
@@ -187,6 +194,7 @@ export class KnowledgeController {
       },
     },
   })
+  @Auth(Role.Admin)
   async updateWithFile(
     @Param('id', IdValidationPipe) id: string,
     @Body() updateKnowledgeDto: UpdateKnowledgeDto,
@@ -256,6 +264,7 @@ export class KnowledgeController {
     status: 404,
     description: 'Knowledge article not found',
   })
+  @Auth(Role.Admin)
   remove(@Param('id', IdValidationPipe) id: string) {
     return this.knowledgeService.remove(+id);
   }

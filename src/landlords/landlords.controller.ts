@@ -9,23 +9,29 @@ import {
   Query,
   Res,
   StreamableFile,
+  UseGuards,
 } from '@nestjs/common';
 import type { Response } from 'express';
 import { LandlordsService } from './landlords.service';
 import { CreateLandlordDto } from './dto/create-landlord.dto';
 import { UpdateLandlordDto } from './dto/update-landlord.dto';
 import { IdValidationPipe } from '../common/id-validation.pipe';
+import { Auth } from '../auth/decorators/auth.decorator';
+import { Role } from '../auth/enums/role.emun';
+import { AuthGuard } from '../auth/guard/auth.guard';
 
 @Controller('landlords')
 export class LandlordsController {
   constructor(private readonly landlordsService: LandlordsService) {}
 
   @Post()
+  @Auth(Role.Admin)
   create(@Body() createLandlordDto: CreateLandlordDto) {
     return this.landlordsService.create(createLandlordDto);
   }
 
   @Get()
+  @UseGuards(AuthGuard)
   findAll(
     @Query('page') page: string = '1',
     @Query('limit') limit: string = '10',
@@ -34,11 +40,13 @@ export class LandlordsController {
   }
 
   @Get(':id')
+  @UseGuards(AuthGuard)
   findOne(@Param('id', IdValidationPipe) id: string) {
     return this.landlordsService.findOne(+id);
   }
 
   @Get(':id/report')
+  @Auth(Role.Admin)
   getReport(
     @Param('id', IdValidationPipe) id: string,
     @Query('startDate') startDate: string,
@@ -54,6 +62,7 @@ export class LandlordsController {
   }
 
   @Post(':id/report/send')
+  @Auth(Role.Admin)
   sendReport(
     @Param('id', IdValidationPipe) id: string,
     @Body()
@@ -68,6 +77,7 @@ export class LandlordsController {
   }
 
   @Get(':id/report/pdf')
+  @Auth(Role.Admin)
   async downloadReportPdf(
     @Param('id', IdValidationPipe) id: string,
     @Query('startDate') startDate: string,
@@ -91,6 +101,7 @@ export class LandlordsController {
   }
 
   @Patch(':id')
+  @Auth(Role.Admin)
   update(
     @Param('id', IdValidationPipe) id: string,
     @Body() updateLandlordDto: UpdateLandlordDto,
@@ -99,6 +110,7 @@ export class LandlordsController {
   }
 
   @Delete(':id')
+  @Auth(Role.Admin)
   remove(@Param('id', IdValidationPipe) id: string) {
     return this.landlordsService.remove(+id);
   }

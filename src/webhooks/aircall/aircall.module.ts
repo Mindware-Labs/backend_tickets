@@ -6,8 +6,8 @@ import { WebhookEvent } from '../../web-hook-event/entities/web-hook-event.entit
 import { Ticket } from '../../ticket/entities/ticket.entity';
 import { Customer } from '../../customers/entities/customer.entity';
 import { Agent } from '../../agents/entities/agent.entity';
-import { User } from '../../auth/entities/user.entity';
 import { CustomersModule } from '../../customers/customers.module';
+import { User } from '../../users/entities/user.entity';
 
 @Module({
   imports: [

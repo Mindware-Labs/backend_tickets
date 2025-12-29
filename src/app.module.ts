@@ -9,7 +9,7 @@ import { typeOrmConfig } from './config/typeorm.config';
 import { AircallModule } from './webhooks/aircall/aircall.module';
 import { CustomersModule } from './customers/customers.module';
 import { AgentsModule } from './agents/agents.module';
-import { AuthModule } from './auth/auth.module';
+//import { AuthModule } from './auth/auth.module';
 import { TicketModule } from './ticket/ticket.module';
 import { CampaignModule } from './campaign/campaign.module';
 import { YardsModule } from './yards/yards.module';
@@ -18,6 +18,7 @@ import { PoliciesModule } from './policies/policies.module';
 import { ReportsModule } from './reports/reports.module';
 import { LandlordsModule } from './landlords/landlords.module';
 import { UsersModule } from './users/users.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -38,7 +39,7 @@ import { UsersModule } from './users/users.module';
     AircallModule,
     CustomersModule,
     AgentsModule,
-    AuthModule,
+    //AuthModule,
     TicketModule,
     CampaignModule,
     YardsModule,
@@ -47,6 +48,7 @@ import { UsersModule } from './users/users.module';
     ReportsModule,
     LandlordsModule,
     UsersModule,
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -1,28 +1,22 @@
 import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { JwtModule } from '@nestjs/jwt';
-import type { StringValue } from 'ms';
-import { PassportModule } from '@nestjs/passport';
-import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
-import { User } from './entities/user.entity';
-import { JwtStrategy } from './strategies/jwt.strategy';
+import { AuthService } from './auth.service';
+import { UsersModule } from '../users/users.module';
+import { JwtModule } from '@nestjs/jwt';
+import { jwtConstants } from './constants/jwt.constants';
 import { EmailModule } from '../email/email.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([User]),
-    PassportModule,
-    JwtModule.register({
-      secret: process.env.JWT_SECRET || 'your-secret-key-change-in-production',
-      signOptions: {
-        expiresIn: (process.env.JWT_EXPIRES_IN || '7d') as StringValue,
-      },
-    }),
+    UsersModule,
     EmailModule,
+    JwtModule.register({
+      global: true,
+      secret: jwtConstants.secret,
+      signOptions: { expiresIn: '12h' },
+    }),
   ],
-  providers: [AuthService, JwtStrategy],
   controllers: [AuthController],
-  exports: [AuthService],
+  providers: [AuthService],
 })
 export class AuthModule {}
