@@ -1,4 +1,3 @@
-
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
@@ -9,6 +8,7 @@ import * as path from 'path';
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
   
+  // 1. NO Usamos app.setGlobalPrefix (Para que /health siga funcionando en la raíz)
 
   app.useStaticAssets(path.join(process.cwd(), 'uploads'), {
     prefix: '/uploads',
@@ -27,39 +27,28 @@ async function bootstrap() {
     }),
   );
 
-  // Swagger configuration
   const config = new DocumentBuilder()
     .setTitle('Tickets API')
-    .setDescription(
-      'API for managing tickets, customers, campaigns, webhooks, yards, and knowledge base',
-    )
+    .setDescription('API Documentation')
     .setVersion('1.0')
     .addBearerAuth()
-    .addTag('auth', 'Authentication and user management')
-    .addTag('tickets', 'Ticket management')
-    .addTag('customers', 'Customer management')
-    .addTag('campaigns', 'Campaign management')
-    .addTag('yards', 'Yard management (container yards)')
-    .addTag('knowledge', 'Knowledge base management')
-    .addTag('webhooks', 'Integration webhooks')
     .build();
+    
   const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api', app, document);
+  
+  // 👇 CAMBIO IMPORTANTE: Swagger ahora está en /docs para no chocar con /api/...
+  SwaggerModule.setup('docs', app, document); 
 
-  // ⚠️ CLAVE PARA RAILWAY: Usar PORT de entorno y ESCUCHAR EN 0.0.0.0
   const port = process.env.PORT || '3000';
   
-  // Añadir manejo de señales para shutdown limpio
   process.on('SIGTERM', () => {
-    console.log('SIGTERM received. Closing HTTP server.');
     app.close();
   });
 
-  await app.listen(port, '0.0.0.0');  // ← ESTA LÍNEA ES LA CLAVE
+  await app.listen(port, '0.0.0.0');
   
-  console.log(`✅ Application is running on: http://0.0.0.0:${port}`);
-  console.log(`📚 Swagger documentation: http://0.0.0.0:${port}/api`);
-  console.log(`🌍 Health check: http://0.0.0.0:${port}/health`);
-  console.log(`📞 Aircall webhook: http://0.0.0.0:${port}/webhooks/aircall`);
+  console.log(`✅ Server running on: http://0.0.0.0:${port}`);
+  console.log(`📄 Swagger UI: http://0.0.0.0:${port}/docs`); // <--- Nueva ruta Swagger
+  console.log(`🏥 Health Check: http://0.0.0.0:${port}/health`);
 }
 bootstrap();
