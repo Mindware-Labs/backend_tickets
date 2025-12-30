@@ -7,6 +7,7 @@ import { Ticket } from './entities/ticket.entity';
 import { Yard } from '../yards/entities/yard.entity';
 import { Customer } from '../customers/entities/customer.entity';
 import { Campaign } from '../campaign/entities/campaign.entity';
+import { Agent } from '../agents/entities/agent.entity';
 
 @Injectable()
 export class TicketService {
@@ -22,6 +23,9 @@ export class TicketService {
 
     @InjectRepository(Campaign)
     private readonly campaignRepository: Repository<Campaign>,
+
+    @InjectRepository(Agent)
+    private readonly agentRepository: Repository<Agent>,
   ) {}
 
   private async loadCustomerWithCampaigns(id: number) {
@@ -189,6 +193,26 @@ export class TicketService {
         (await this.loadCustomerWithCampaigns(ticket.customerId));
       if (targetCustomer) {
         await this.attachCampaignToCustomer(targetCustomer, campaign);
+      }
+    }
+
+    if (updateTicketDto.agentId !== undefined) {
+      if (updateTicketDto.agentId === null) {
+        ticket.assignedTo = undefined;
+        ticket.agentId = undefined;
+      } else {
+        const agent = await this.agentRepository.findOneBy({
+          id: updateTicketDto.agentId,
+        });
+
+        if (!agent) {
+          throw new NotFoundException(
+            `Agent with ID ${updateTicketDto.agentId} not found`,
+          );
+        }
+
+        ticket.assignedTo = agent;
+        ticket.agentId = agent.id;
       }
     }
 
