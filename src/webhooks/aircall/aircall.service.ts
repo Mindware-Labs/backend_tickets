@@ -124,11 +124,10 @@ export class AircallService {
     try {
       this.logger.log(`Creating ticket from Aircall webhook ${data.id}`);
 
-      // Si el evento es call.missed, forzar la dirección a 'MISSED'
-      const direction =
-        eventType === 'call.missed'
-          ? 'MISSED'
-          : this.mapDirection(data.direction);
+      const isMissed =
+        eventType === 'call.missed' ||
+        (eventType === 'call.ended' && data.missed_call_reason != null);
+      const direction = isMissed ? 'MISSED' : this.mapDirection(data.direction);
 
       // fromNumber: caller
       // inboundNumber: recipient
