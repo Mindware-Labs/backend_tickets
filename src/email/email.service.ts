@@ -1,6 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import * as nodemailer from 'nodemailer';
 import axios from 'axios';
 import {
   passwordResetCodeTemplate,
@@ -26,117 +25,91 @@ interface EmailOptions {
 
 @Injectable()
 export class EmailService {
-  private transporter: nodemailer.Transporter;
   private readonly logger = new Logger(EmailService.name);
-  private readonly fromEmail: string;
+  private readonly senderEmail: string;
+  private readonly senderName: string;
   private readonly frontendUrl: string;
   private readonly brevoApiKey?: string;
 
   constructor(private configService: ConfigService) {
-    const host = this.configService.get<string>('EMAIL_HOST');
-    const port = this.configService.get<number>('EMAIL_PORT');
     const user = this.configService.get<string>('EMAIL_USER');
-    const pass = this.configService.get<string>('EMAIL_PASSWORD');
     this.brevoApiKey = this.configService.get<string>('BREVO_API_KEY');
 
     // Ensure the sender format is correct
     const emailFrom = this.configService.get<string>('EMAIL_FROM');
     if (emailFrom) {
       // If it already has the correct format, use it
-      this.fromEmail = emailFrom.includes('<')
-        ? emailFrom
-        : `"Ticketing System" <${emailFrom}>`;
+      if (emailFrom.includes('<')) {
+        this.senderName =
+          emailFrom.match(/"?(.+?)"?\s*</)?.[1]?.trim() || 'Ticketing System';
+        this.senderEmail =
+          emailFrom.match(/<(.+?)>/)?.[1]?.trim() || user || 'noreply@tickets.com';
+      } else {
+        this.senderName = 'Ticketing System';
+        this.senderEmail = emailFrom;
+      }
     } else {
       // If not configured, use EMAIL_USER as a fallback
-      this.fromEmail = user
-        ? `"Ticketing System" <${user}>`
-        : '"Ticketing System" <noreply@tickets.com>';
+      this.senderName = 'Ticketing System';
+      this.senderEmail = user || 'noreply@tickets.com';
     }
     this.frontendUrl =
       this.configService.get<string>('FRONTEND_URL') || 'http://localhost:3000';
 
-    if (!host || !user || !pass) {
+    if (!this.brevoApiKey) {
       this.logger.warn(
-        'Email configuration is missing. Emails will not be sent correctly.',
+        'BREVO_API_KEY is missing. Emails will not be sent correctly.',
       );
     }
-
-    this.transporter = nodemailer.createTransport({
-      host: host || 'smtp.example.com',
-      port: port || 587,
-      secure: port === 465,
-      auth: {
-        user: user,
-        pass: pass,
-      },
-      tls: {
-        rejectUnauthorized: false,
-      },
-      connectionTimeout: 10000,
-      greetingTimeout: 10000,
-      socketTimeout: 10000,
-    });
   }
 
   private async sendEmail(options: EmailOptions): Promise<any> {
-    const mailOptions = {
-      from: this.fromEmail,
-      to: options.to,
+    if (!this.brevoApiKey) {
+      throw new Error('Email service is not configured: missing BREVO_API_KEY');
+    }
+
+    const payload: Record<string, any> = {
+      sender: { email: this.senderEmail, name: this.senderName },
+      to: [{ email: options.to }],
       subject: options.subject,
-      html: options.html,
-      text: options.text,
-      attachments: options.attachments,
-      // Headers to reduce spam flags and improve delivery
-      // Note: Do not use 'Auto-Submitted' since Gmail treats it as a notification
-      headers: {
-        'X-Priority': '1',
-        'X-MSMail-Priority': 'High',
-        Importance: 'high',
-        'X-Mailer': 'Ticketing System',
-        'MIME-Version': '1.0',
-        'X-Auto-Response-Suppress': 'All',
-      },
-      // Additional settings to improve delivery
-      priority: 'high' as 'high' | 'normal' | 'low',
-      date: new Date(),
-      // Reply-To should match the sender to avoid issues
-      replyTo: this.fromEmail,
+      htmlContent: options.html,
+      textContent: options.text,
+      replyTo: { email: this.senderEmail, name: this.senderName },
     };
 
-    try {
-      const info = await this.transporter.sendMail(mailOptions);
-      const accepted = (info?.accepted || []).map(String);
-      const rejected = (info?.rejected || []).map(String);
-      this.logger.log(
-        `Email sent successfully to ${options.to}: ${info?.messageId || 'N/A'}`,
-      );
-      this.logger.log(
-        `Email delivery status - accepted: ${accepted.join(', ') || 'none'}, rejected: ${rejected.join(', ') || 'none'}`,
-      );
-      if (rejected.length > 0 || accepted.length === 0) {
-        throw new Error(
-          `Email rejected by SMTP. Accepted: ${accepted.join(', ') || 'none'}, Rejected: ${rejected.join(', ') || 'none'}`,
-        );
-      }
-      return info;
-    } catch (error: any) {
-      this.logger.error(`Error sending email to ${options.to}`, error);
+    if (options.attachments?.length) {
+      payload.attachment = options.attachments.map((attachment) => ({
+        name: attachment.filename,
+        content: attachment.content.toString('base64'),
+        type: attachment.contentType || 'application/octet-stream',
+      }));
+    }
 
-      // Detect specific Gmail errors
-      if (
-        error.responseCode === 550 ||
-        error.code === 'EENVELOPE' ||
-        (error.message && error.message.includes('550'))
-      ) {
-        const errorMessage = error.message || '';
-        if (
-          errorMessage.includes('does not exist') ||
-          errorMessage.includes('NoSuchUser')
-        ) {
-          throw new Error(
-            `The email address ${options.to} does not exist or cannot receive emails. Please verify that the address is correct.`,
-          );
-        }
+    try {
+      const response = await axios.post(
+        'https://api.brevo.com/v3/smtp/email',
+        payload,
+        {
+          headers: {
+            'api-key': this.brevoApiKey,
+            accept: 'application/json',
+            'content-type': 'application/json',
+          },
+          timeout: 10000,
+        },
+      );
+      this.logger.log(`Email sent successfully via Brevo to ${options.to}`);
+      return response.data;
+    } catch (error: any) {
+      const details =
+        error?.response?.data || error?.message || 'Unknown error from Brevo';
+      this.logger.error(
+        `Error sending email via Brevo to ${options.to}`,
+        details,
+      );
+
+      if (error?.response?.data?.message) {
+        throw new Error(error.response.data.message);
       }
 
       throw error;
