@@ -124,17 +124,25 @@ export class AircallService {
     try {
       this.logger.log(`Creating ticket from Aircall webhook ${data.id}`);
 
+      const baseDirection = this.mapDirection(data.direction);
+      const hasMissedReason = data.missed_call_reason != null;
+      const wasNotAnswered = data.answered_at == null;
       const isMissed =
         eventType === 'call.missed' ||
-        (eventType === 'call.ended' && data.missed_call_reason != null);
-      const direction = isMissed ? 'MISSED' : this.mapDirection(data.direction);
+        hasMissedReason ||
+        (eventType === 'call.ended' && wasNotAnswered);
+      const direction = isMissed ? 'MISSED' : baseDirection;
+
+      this.logger.debug(
+        `Classified Aircall ${data.id} as direction=${direction} (base=${baseDirection}) | answered_at=${data.answered_at ?? 'none'} | missed_reason=${data.missed_call_reason ?? 'none'}`,
+      );
 
       // fromNumber: caller
       // inboundNumber: recipient
       let fromNumber: string;
       let inboundNumber: string;
 
-      if (direction === 'INBOUND') {
+      if (baseDirection === 'INBOUND') {
         fromNumber = data.from || data.raw_digits || 'unknown';
         inboundNumber = data.to || data.number?.digits || 'unknown';
       } else {
@@ -240,10 +248,7 @@ export class AircallService {
 
         agentId: agentId,
 
-        status:
-          eventType === 'call.missed'
-            ? TicketStatus.OPEN
-            : TicketStatus.IN_PROGRESS,
+        status: isMissed ? TicketStatus.OPEN : TicketStatus.IN_PROGRESS,
         priority: TicketPriority.LOW,
 
         aircallId: data.id?.toString(),
