@@ -252,7 +252,7 @@ export class AircallService {
 
         attachments: undefined,
 
-        onboardingOption: undefined,
+        campaignOption: undefined,
       };
 
       const ticket = this.ticketRepo.create(ticketData);
@@ -269,9 +269,12 @@ export class AircallService {
       throw error;
     }
   }
-  private mapDirection(direction: string): 'INBOUND' | 'OUTBOUND' {
+  private mapDirection(direction: string): 'INBOUND' | 'OUTBOUND' | 'MISSED' {
     const normalized = (direction || '').toLowerCase();
-    return normalized === 'inbound' ? 'INBOUND' : 'OUTBOUND';
+    if (normalized === 'missed') return 'MISSED';
+    if (normalized === 'inbound') return 'INBOUND';
+    if (normalized === 'outbound') return 'OUTBOUND';
+    return 'INBOUND'; // fallback por defecto
   }
 
   private async findOrCreateAgentUser(name: string, email: string) {

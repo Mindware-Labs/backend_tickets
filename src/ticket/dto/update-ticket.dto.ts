@@ -14,7 +14,7 @@ import {
   TicketStatus,
   TicketDisposition,
   CallDirection,
-  OnboardingOption,
+  CampaignOption,
 } from '../entities/ticket.entity';
 
 export class UpdateTicketDto {
@@ -150,11 +150,11 @@ export class UpdateTicketDto {
   @ApiProperty({
     description:
       'Onboarding option - only applies when campaign is ONBOARDING. Entered manually by the agent (optional)',
-    enum: OnboardingOption,
-    example: OnboardingOption.REGISTER,
+    enum: CampaignOption,
+    example: CampaignOption.REGISTER,
     required: false,
   })
   @IsOptional()
-  @IsEnum(OnboardingOption)
-  onboardingOption?: OnboardingOption;
+  @IsEnum(CampaignOption)
+  campaignOption?: CampaignOption;
 }

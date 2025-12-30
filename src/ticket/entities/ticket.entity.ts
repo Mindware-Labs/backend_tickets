@@ -53,10 +53,21 @@ export enum ContactSource {
   AIRCALL_OUTBOUND = 'AIRCALL_OUTBOUND',
 }
 
-export enum OnboardingOption {
+export enum CampaignOption {
+  // Opciones para ONBOARDING
   NOT_REGISTER = 'NOT_REGISTERED',
   REGISTER = 'REGISTERED',
   PAID_WITH_LL = 'PAID_WITH_LL',
+
+  // Opciones para AR
+  PAID = 'PAID',
+  NOT_PAID = 'NOT_PAID',
+  OFFLINE_PAYMENT = 'OFFLINE_PAYMENT',
+  NOT_PAID_CHECK = 'NOT_PAID_CHECK',
+  MOVED_OUT = 'MOVED_OUT',
+  CANCELED = 'CANCELED',
+  BALANCE_0 = 'BALANCE_0',
+  DO_NOT_CALL = 'DO_NOT_CALL',
 }
 
 @Entity('tickets')
@@ -154,15 +165,15 @@ export class Ticket {
   })
   attachments?: string[];
 
-  // Onboarding Option (only when campaign is ONBOARDING)
+  // Campaign Option (ONBOARDING o AR)
   @Column({
     type: 'enum',
-    enum: OnboardingOption,
+    enum: CampaignOption,
     nullable: true,
     comment:
-      'Only applies when campaign is ONBOARDING. Entered manually by the agent.',
+      'Only applies when campaign is ONBOARDING or AR. Entered manually by the agent.',
   })
-  onboardingOption?: OnboardingOption;
+  campaignOption?: CampaignOption;
 
   // Created date
   @CreateDateColumn()
