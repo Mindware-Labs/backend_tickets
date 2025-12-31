@@ -1,8 +1,13 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
+import { Agent } from '../agents/entities/agent.entity';
 import { Repository } from 'typeorm';
 import * as bcryptjs from 'bcryptjs';
 import * as crypto from 'crypto';
@@ -12,6 +17,8 @@ import { EmailService } from '../email/email.service';
 export class UsersService {
   @InjectRepository(User)
   private readonly userRepo: Repository<User>;
+  @InjectRepository(Agent)
+  private readonly agentRepo: Repository<Agent>;
   constructor(private readonly emailService: EmailService) {}
 
   private generateRandomPassword() {
@@ -23,8 +30,45 @@ export class UsersService {
     return code.toString().padStart(6, '0');
   }
 
-  create(createUserDto: Partial<User>) {
-    return this.userRepo.save(createUserDto);
+  private async ensureAgentForUser(user: User) {
+    const role = (user.role || '').toString().toUpperCase();
+    if (role !== 'AGENT') return;
+
+    const email = user.email?.toLowerCase() || null;
+    const name =
+      [user.name, user.lastName].filter(Boolean).join(' ').trim() || user.email;
+
+    const existing = await this.agentRepo.findOne({
+      where: [
+        ...(user.id ? [{ userId: user.id }] : []),
+        ...(email ? [{ email }] : []),
+      ],
+    });
+
+    if (existing) {
+      existing.name = name || existing.name;
+      if (email) existing.email = email;
+      if (user.id) existing.userId = user.id;
+      existing.isActive =
+        user.isActive !== undefined ? user.isActive : existing.isActive;
+      await this.agentRepo.save(existing);
+      return existing;
+    }
+
+    const agent = this.agentRepo.create({
+      name,
+      email: email || undefined,
+      userId: user.id,
+      isActive: user.isActive ?? true,
+    });
+    await this.agentRepo.save(agent);
+    return agent;
+  }
+
+  async create(createUserDto: Partial<User>) {
+    const user = await this.userRepo.save(createUserDto);
+    await this.ensureAgentForUser(user);
+    return user;
   }
 
   async createWithInvite(createUserDto: Partial<User>) {
@@ -70,6 +114,8 @@ export class UsersService {
     user.resetCodeExpiry = resetCodeExpiry;
 
     await this.userRepo.save(user);
+
+    await this.ensureAgentForUser(user);
 
     return {
       message:
@@ -140,11 +186,17 @@ export class UsersService {
   async update(id: number, updateUserDto: UpdateUserDto) {
     const user = await this.findOne(id);
     Object.assign(user, updateUserDto);
-    return this.userRepo.save(user);
+    const saved = await this.userRepo.save(user);
+    await this.ensureAgentForUser(saved);
+    return saved;
   }
 
   async remove(id: number) {
     const user = await this.findOne(id);
+    const agent = await this.agentRepo.findOne({ where: { userId: user.id } });
+    if (agent) {
+      await this.agentRepo.remove(agent);
+    }
     await this.userRepo.remove(user);
     return { message: 'User removed successfully' };
   }
