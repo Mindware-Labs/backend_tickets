@@ -7,7 +7,10 @@ import {
   Param,
   Delete,
   Query,
+  Res,
+  StreamableFile,
 } from '@nestjs/common';
+import type { Response } from 'express';
 import {
   ApiTags,
   ApiOperation,
@@ -148,5 +151,54 @@ export class CampaignController {
   @Auth(Role.Admin)
   remove(@Param('id', IdValidationPipe) id: string) {
     return this.campaignService.remove(+id);
+  }
+
+  @Get(':id/report/pdf')
+  @ApiOperation({
+    summary: 'Download campaign report PDF',
+    description: 'Generates a PDF report for the specified campaign and date range.',
+  })
+  @ApiParam({ name: 'id', type: Number, description: 'Campaign ID' })
+  @ApiQuery({ name: 'startDate', required: true, type: String })
+  @ApiQuery({ name: 'endDate', required: true, type: String })
+  @ApiQuery({ name: 'logoUrl', required: false, type: String })
+  @Auth(Role.Admin)
+  async downloadReportPdf(
+    @Param('id', IdValidationPipe) id: string,
+    @Query('startDate') startDate: string,
+    @Query('endDate') endDate: string,
+    @Res({ passthrough: true }) res: Response,
+    @Query('logoUrl') logoUrl?: string,
+  ) {
+    const pdf = await this.campaignService.getCampaignReportPdf(
+      +id,
+      startDate,
+      endDate,
+      logoUrl,
+    );
+
+    res.set({
+      'Content-Type': 'application/pdf',
+      'Content-Disposition': `attachment; filename="campaign-report-${id}.pdf"`,
+    });
+
+    return new StreamableFile(pdf);
+  }
+
+  @Get(':id/report')
+  @ApiOperation({
+    summary: 'Get campaign report data',
+    description: 'Returns aggregated campaign report data for the date range.',
+  })
+  @ApiParam({ name: 'id', type: Number, description: 'Campaign ID' })
+  @ApiQuery({ name: 'startDate', required: true, type: String })
+  @ApiQuery({ name: 'endDate', required: true, type: String })
+  @Auth(Role.Admin)
+  getReportData(
+    @Param('id', IdValidationPipe) id: string,
+    @Query('startDate') startDate: string,
+    @Query('endDate') endDate: string,
+  ) {
+    return this.campaignService.getCampaignReportData(+id, startDate, endDate);
   }
 }

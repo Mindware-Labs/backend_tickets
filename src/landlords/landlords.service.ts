@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateLandlordDto } from './dto/create-landlord.dto';
 import { UpdateLandlordDto } from './dto/update-landlord.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -152,7 +156,8 @@ export class LandlordsService {
 
     const { start, end } = this.normalizeDateRange(startDate, endDate);
     const msPerDay = 24 * 60 * 60 * 1000;
-    const diffDays = Math.floor((end.getTime() - start.getTime()) / msPerDay) + 1;
+    const diffDays =
+      Math.floor((end.getTime() - start.getTime()) / msPerDay) + 1;
     if (diffDays > 366) {
       throw new BadRequestException('Date range is too large');
     }
@@ -245,7 +250,10 @@ export class LandlordsService {
       {},
     );
 
-    const dailyMap = new Map<string, { inbound: number; outbound: number; total: number }>();
+    const dailyMap = new Map<
+      string,
+      { inbound: number; outbound: number; total: number }
+    >();
     dailyRows.forEach((row) => {
       const key = new Date(row.day).toISOString().slice(0, 10);
       dailyMap.set(key, {
@@ -272,7 +280,9 @@ export class LandlordsService {
       .slice(0, 5);
 
     const averagePerYard =
-      yardRows.length === 0 ? 0 : Number((totals.total / yardRows.length).toFixed(2));
+      yardRows.length === 0
+        ? 0
+        : Number((totals.total / yardRows.length).toFixed(2));
 
     return {
       landlord: {
@@ -294,7 +304,24 @@ export class LandlordsService {
     };
   }
 
- private async buildReportPdf(report: any) {
+  private async loadLogoBuffer(logoUrl?: string): Promise<Buffer | null> {
+    if (!logoUrl) return null;
+    const fetchFn = (globalThis as any).fetch as
+      | ((input: any, init?: any) => Promise<any>)
+      | undefined;
+    if (!fetchFn) return null;
+    try {
+      const response = await fetchFn(logoUrl);
+      if (!response.ok) return null;
+      const arrayBuffer = await response.arrayBuffer();
+      return Buffer.from(arrayBuffer);
+    } catch (error) {
+      // If the logo fails to load we still return the PDF without it.
+      return null;
+    }
+  }
+
+  private async buildReportPdf(report: any, logoBuffer?: Buffer | null) {
     const doc = new PDFDocument({ margin: 50, size: 'A4' });
     const chunks: Buffer[] = [];
 
@@ -312,24 +339,56 @@ export class LandlordsService {
     doc.rect(0, 0, doc.page.width, 140).fill(lightGray);
 
     // Main Title
-    doc.fillColor(primaryColor).fontSize(24).font('Helvetica-Bold').text('LANDLORD REPORT', 50, 40);
+    doc
+      .fillColor(primaryColor)
+      .fontSize(24)
+      .font('Helvetica-Bold')
+      .text('LANDLORD REPORT', 50, 40);
 
     // Decorative Line
     doc.rect(50, 70, 50, 3).fill(secondaryColor);
 
     // Landlord Info (Left Side)
-    doc.fillColor('black').fontSize(10).font('Helvetica-Bold').text('GENERATED FOR:', 50, 90);
+    doc
+      .fillColor('black')
+      .fontSize(10)
+      .font('Helvetica-Bold')
+      .text('GENERATED FOR:', 50, 90);
     doc.font('Helvetica').fontSize(12).text(report.landlord.name, 50, 105);
     doc.fontSize(10).fillColor(grayColor).text(report.landlord.email, 50, 120);
 
     // Date Range (Right Side)
     const dateTextX = 400;
-    doc.fillColor('black').fontSize(10).font('Helvetica-Bold').text('REPORT RANGE:', dateTextX, 90);
-    doc.font('Helvetica').fontSize(10).text(
-      `${new Date(report.range.startDate).toLocaleDateString()} - ${new Date(report.range.endDate).toLocaleDateString()}`,
-      dateTextX,
-      105
-    );
+    doc
+      .fillColor('black')
+      .fontSize(10)
+      .font('Helvetica-Bold')
+      .text('REPORT RANGE:', dateTextX, 90);
+    doc
+      .font('Helvetica')
+      .fontSize(10)
+      .text(
+        `${new Date(report.range.startDate).toLocaleDateString()} - ${new Date(report.range.endDate).toLocaleDateString()}`,
+        dateTextX,
+        105,
+      );
+
+    // Logo (top-right inside header)
+    if (logoBuffer) {
+      try {
+        const logoWidth = 90;
+        const logoHeight = 50;
+        const x = doc.page.width - logoWidth - 50;
+        const y = 30;
+        doc.image(logoBuffer, x, y, {
+          fit: [logoWidth, logoHeight],
+          align: 'right',
+          valign: 'center',
+        });
+      } catch (error) {
+        // Fail silently if the logo cannot be rendered
+      }
+    }
 
     doc.moveDown(4); // Space after header
 
@@ -339,36 +398,78 @@ export class LandlordsService {
     const boxHeight = 70;
     const gap = 15;
 
-    const drawSummaryCard = (x: number, title: string, value: string | number, color: string) => {
+    const drawSummaryCard = (
+      x: number,
+      title: string,
+      value: string | number,
+      color: string,
+    ) => {
       // Light shadow
-      doc.rect(x + 2, summaryY + 2, boxWidth, boxHeight).fillColor('#e5e7eb').fill();
+      doc
+        .rect(x + 2, summaryY + 2, boxWidth, boxHeight)
+        .fillColor('#e5e7eb')
+        .fill();
       // White box
       doc.rect(x, summaryY, boxWidth, boxHeight).fillColor(white).fill();
-      doc.rect(x, summaryY, boxWidth, boxHeight).strokeColor('#e5e7eb').stroke();
-      
+      doc
+        .rect(x, summaryY, boxWidth, boxHeight)
+        .strokeColor('#e5e7eb')
+        .stroke();
+
       // Top color border
       doc.rect(x, summaryY, boxWidth, 3).fillColor(color).fill();
 
       // Text
-      doc.fillColor(grayColor).fontSize(9).font('Helvetica').text(title.toUpperCase(), x + 10, summaryY + 15);
-      doc.fillColor('black').fontSize(18).font('Helvetica-Bold').text(String(value), x + 10, summaryY + 35);
+      doc
+        .fillColor(grayColor)
+        .fontSize(9)
+        .font('Helvetica')
+        .text(title.toUpperCase(), x + 10, summaryY + 15);
+      doc
+        .fillColor('black')
+        .fontSize(18)
+        .font('Helvetica-Bold')
+        .text(String(value), x + 10, summaryY + 35);
     };
 
     drawSummaryCard(50, 'Total Tickets', report.totals.total, primaryColor);
-    drawSummaryCard(50 + boxWidth + gap, 'Inbound Calls', report.totals.inbound, '#10b981'); // Green
-    drawSummaryCard(50 + (boxWidth + gap) * 2, 'Outbound Calls', report.totals.outbound, '#f59e0b'); // Orange
-    drawSummaryCard(50 + (boxWidth + gap) * 3, 'Avg Per Yard', report.averagePerYard, secondaryColor);
+    drawSummaryCard(
+      50 + boxWidth + gap,
+      'Inbound Calls',
+      report.totals.inbound,
+      '#10b981',
+    ); // Green
+    drawSummaryCard(
+      50 + (boxWidth + gap) * 2,
+      'Outbound Calls',
+      report.totals.outbound,
+      '#f59e0b',
+    ); // Orange
+    drawSummaryCard(
+      50 + (boxWidth + gap) * 3,
+      'Avg Per Yard',
+      report.averagePerYard,
+      secondaryColor,
+    );
 
     doc.y = summaryY + boxHeight + 40;
 
     // --- 3. YARDS TABLE (DETAILS) ---
-    
+
     // Helper function to draw tables
-    const drawTable = (title: string, data: any[], columns: { header: string, width: number, key: string, align?: string }[]) => {
+    const drawTable = (
+      title: string,
+      data: any[],
+      columns: { header: string; width: number; key: string; align?: string }[],
+    ) => {
       // Check for page break
       if (doc.y + 100 > doc.page.height) doc.addPage();
 
-      doc.fillColor(primaryColor).fontSize(14).font('Helvetica-Bold').text(title, 50, doc.y);
+      doc
+        .fillColor(primaryColor)
+        .fontSize(14)
+        .font('Helvetica-Bold')
+        .text(title, 50, doc.y);
       doc.moveDown(0.5);
 
       const startX = 50;
@@ -378,10 +479,13 @@ export class LandlordsService {
       // Draw Headers
       doc.rect(startX, currentY, 500, rowHeight).fill(lightGray);
       let colX = startX + 10;
-      
+
       doc.fillColor('black').fontSize(9).font('Helvetica-Bold');
-      columns.forEach(col => {
-        doc.text(col.header, colX, currentY + 8, { width: col.width, align: col.align as any || 'left' });
+      columns.forEach((col) => {
+        doc.text(col.header, colX, currentY + 8, {
+          width: col.width,
+          align: (col.align as any) || 'left',
+        });
         colX += col.width;
       });
 
@@ -398,19 +502,26 @@ export class LandlordsService {
 
         // Alternating row colors (zebra striping)
         if (index % 2 === 0) {
-           doc.rect(startX, currentY, 500, rowHeight).fill('#fafafa');
+          doc.rect(startX, currentY, 500, rowHeight).fill('#fafafa');
         }
-        
+
         // Subtle bottom border
-        doc.moveTo(startX, currentY + rowHeight).lineTo(startX + 500, currentY + rowHeight).strokeColor('#e5e7eb').stroke();
+        doc
+          .moveTo(startX, currentY + rowHeight)
+          .lineTo(startX + 500, currentY + rowHeight)
+          .strokeColor('#e5e7eb')
+          .stroke();
 
         let cellX = startX + 10;
         doc.fillColor('#374151'); // Dark gray text
-        
-        columns.forEach(col => {
-            const textValue = String(row[col.key] || 0);
-            doc.text(textValue, cellX, currentY + 8, { width: col.width, align: col.align as any || 'left' });
-            cellX += col.width;
+
+        columns.forEach((col) => {
+          const textValue = String(row[col.key] || 0);
+          doc.text(textValue, cellX, currentY + 8, {
+            width: col.width,
+            align: (col.align as any) || 'left',
+          });
+          cellX += col.width;
         });
 
         currentY += rowHeight;
@@ -421,28 +532,33 @@ export class LandlordsService {
 
     // Column definitions
     const yardColumns = [
-        { header: 'YARD NAME', width: 200, key: 'name' },
-        { header: 'TOTAL', width: 80, key: 'total', align: 'center' },
-        { header: 'INBOUND', width: 80, key: 'inbound', align: 'center' },
-        { header: 'OUTBOUND', width: 80, key: 'outbound', align: 'center' }
+      { header: 'YARD NAME', width: 200, key: 'name' },
+      { header: 'TOTAL', width: 80, key: 'total', align: 'center' },
+      { header: 'INBOUND', width: 80, key: 'inbound', align: 'center' },
+      { header: 'OUTBOUND', width: 80, key: 'outbound', align: 'center' },
     ];
 
     // Draw Yards Table (Sorted by total volume)
-    const sortedYards = [...report.yards].sort((a: any, b: any) => b.total - a.total);
+    const sortedYards = [...report.yards].sort(
+      (a: any, b: any) => b.total - a.total,
+    );
     drawTable('Yard Details', sortedYards, yardColumns);
 
-
     // --- 4. BAR CHART (Daily Volume) ---
-    
+
     // Check space for chart
     if (doc.y + 200 > doc.page.height) doc.addPage();
 
-    doc.fillColor(primaryColor).fontSize(14).font('Helvetica-Bold').text('Daily Volume', 50, doc.y);
+    doc
+      .fillColor(primaryColor)
+      .fontSize(14)
+      .font('Helvetica-Bold')
+      .text('Daily Volume', 50, doc.y);
     doc.moveDown(1);
 
     const chartDays = report.callsByDay.slice(-14);
     const maxTotal = Math.max(1, ...chartDays.map((day: any) => day.total)); // Prevent division by zero
-    
+
     const chartX = 50;
     const chartWidth = 450;
     const barHeight = 15;
@@ -457,24 +573,39 @@ export class LandlordsService {
     chartDays.forEach((day: any) => {
       // Check page break inside chart
       if (chartY + barHeight + barGap > doc.page.height - 50) {
-         doc.addPage();
-         chartY = 50;
+        doc.addPage();
+        chartY = 50;
       }
 
       // Date Label
-      doc.fillColor(grayColor).text(day.date, chartX, chartY + 4, { width: labelWidth, align: 'right' });
+      doc.fillColor(grayColor).text(day.date, chartX, chartY + 4, {
+        width: labelWidth,
+        align: 'right',
+      });
 
       // Bar Background (light gray for context)
-      doc.rect(chartX + labelWidth + 10, chartY, maxBarWidth, barHeight).fillColor('#f3f4f6').fill();
+      doc
+        .rect(chartX + labelWidth + 10, chartY, maxBarWidth, barHeight)
+        .fillColor('#f3f4f6')
+        .fill();
 
       // Value Bar
       const width = (day.total / maxTotal) * maxBarWidth;
       if (width > 0) {
-        doc.rect(chartX + labelWidth + 10, chartY, width, barHeight).fillColor(secondaryColor).fill();
+        doc
+          .rect(chartX + labelWidth + 10, chartY, width, barHeight)
+          .fillColor(secondaryColor)
+          .fill();
       }
 
       // Value Label
-      doc.fillColor('black').text(String(day.total), chartX + labelWidth + 10 + width + 5, chartY + 4);
+      doc
+        .fillColor('black')
+        .text(
+          String(day.total),
+          chartX + labelWidth + 10 + width + 5,
+          chartY + 4,
+        );
 
       chartY += barHeight + barGap;
     });
@@ -499,6 +630,7 @@ export class LandlordsService {
     startDate: string,
     endDate: string,
     yardId?: number,
+    logoUrl?: string,
   ) {
     const report = await this.buildReportData(
       landlordId,
@@ -506,7 +638,8 @@ export class LandlordsService {
       endDate,
       yardId,
     );
-    const pdf = await this.buildReportPdf(report);
+    const logoBuffer = await this.loadLogoBuffer(logoUrl);
+    const pdf = await this.buildReportPdf(report, logoBuffer);
     const html = landlordReportTemplate(
       report.landlord.name,
       new Date(report.range.startDate).toLocaleDateString(),
@@ -535,6 +668,7 @@ export class LandlordsService {
     startDate: string,
     endDate: string,
     yardId?: number,
+    logoUrl?: string,
   ) {
     const report = await this.buildReportData(
       landlordId,
@@ -542,6 +676,7 @@ export class LandlordsService {
       endDate,
       yardId,
     );
-    return this.buildReportPdf(report);
+    const logoBuffer = await this.loadLogoBuffer(logoUrl);
+    return this.buildReportPdf(report, logoBuffer);
   }
 }

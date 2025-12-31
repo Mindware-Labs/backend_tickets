@@ -66,13 +66,14 @@ export class LandlordsController {
   sendReport(
     @Param('id', IdValidationPipe) id: string,
     @Body()
-    body: { startDate: string; endDate: string; yardId?: number },
+    body: { startDate: string; endDate: string; yardId?: number; logoUrl?: string },
   ) {
     return this.landlordsService.sendReport(
       +id,
       body.startDate,
       body.endDate,
       body.yardId,
+      body.logoUrl,
     );
   }
 
@@ -84,12 +85,14 @@ export class LandlordsController {
     @Query('endDate') endDate: string,
     @Res({ passthrough: true }) res: Response,
     @Query('yardId') yardId?: string,
+    @Query('logoUrl') logoUrl?: string,
   ) {
     const pdf = await this.landlordsService.getReportPdf(
       +id,
       startDate,
       endDate,
       yardId ? Number(yardId) : undefined,
+      logoUrl,
     );
 
     res.set({
