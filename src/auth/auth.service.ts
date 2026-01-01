@@ -17,6 +17,7 @@ import { User } from '../users/entities/user.entity';
 import { VerifyEmailDto } from './dto/verify-email.dto';
 import { VerifyEmailCodeDto } from './dto/verify-email-code.dto';
 import { VerifyResetCodeDto } from './dto/verify-reset-code.dto';
+import { UpdateProfileDto } from './dto/update-profile.dto';
 
 @Injectable()
 export class AuthService {
@@ -40,42 +41,32 @@ export class AuthService {
     }
 
     const hashedPassword = await bcryptjs.hash(registerDto.password, 10);
-    const verificationToken = crypto.randomBytes(32).toString('hex');
-    const verificationTokenExpiry = new Date(Date.now() + 24 * 3600 * 1000); // 24h
-    const verificationCode = this.generateSixDigitCode();
-    const verificationCodeExpiry = new Date(Date.now() + 15 * 60 * 1000); // 15m
 
-    await this.usersService.create({
+    const createdUser = await this.usersService.create({
       ...registerDto,
       password: hashedPassword,
-      emailVerified: false,
-      verificationToken,
-      verificationTokenExpiry,
-      verificationCode,
-      verificationCodeExpiry,
+      emailVerified: true,
+      verificationToken: undefined,
+      verificationTokenExpiry: undefined,
+      verificationCode: undefined,
+      verificationCodeExpiry: undefined,
     });
 
-    // fire-and-forget email with 6-digit code (legacy flow)
+    // fire-and-forget welcome email
     try {
-      await this.emailService.sendAccountVerificationEmail(
+      await this.emailService.sendWelcomeEmail(
         registerDto.email,
-        verificationCode,
         `${registerDto.name} ${registerDto.lastName}`.trim(),
       );
     } catch (error) {
       this.logger.warn(
-        `User registered but failed to send verification email to ${registerDto.email}: ${error}`,
+        `User registered but failed to send welcome email to ${registerDto.email}: ${error}`,
       );
     }
 
     return {
-      message:
-        'User registered successfully. Please check your email for the verification code.',
-      email: registerDto.email,
-      verificationCode:
-        process.env.NODE_ENV === 'development' ? verificationCode : undefined,
-      verificationToken:
-        process.env.NODE_ENV === 'development' ? verificationToken : undefined,
+      message: 'User registered successfully.',
+      email: createdUser.email,
     };
   }
 
@@ -280,6 +271,31 @@ export class AuthService {
       role: user.role,
       isActive: user.isActive,
       emailVerified: user.emailVerified,
+    };
+  }
+
+  async updateProfile(
+    email: string,
+    updateProfileDto: UpdateProfileDto,
+  ) {
+    const user = await this.usersService.findOneByEmail(email);
+    if (!user) {
+      throw new BadRequestException('User not found');
+    }
+
+    const updated = await this.usersService.update(user.id, {
+      name: updateProfileDto.name ?? user.name,
+      lastName: updateProfileDto.lastName ?? user.lastName,
+    });
+
+    return {
+      id: updated.id,
+      email: updated.email,
+      name: updated.name,
+      lastName: updated.lastName,
+      role: updated.role,
+      isActive: updated.isActive,
+      emailVerified: updated.emailVerified,
     };
   }
 }

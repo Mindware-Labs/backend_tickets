@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Patch, Post, Req, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { registerDto } from './dto/register.dto';
 import { loginDto } from './dto/login.dto';
@@ -9,6 +9,7 @@ import { VerifyEmailDto } from './dto/verify-email.dto';
 import { VerifyEmailCodeDto } from './dto/verify-email-code.dto';
 import { VerifyResetCodeDto } from './dto/verify-reset-code.dto';
 import { AuthGuard } from './guard/auth.guard';
+import { UpdateProfileDto } from './dto/update-profile.dto';
 
 interface RequestWithUser extends Request {
   user: { sub: string; email: string; role: string };
@@ -22,8 +23,6 @@ export class AuthController {
     @Body()
     registerDto: registerDto,
   ) {
-    console.log(registerDto);
-
     return this.authService.register(registerDto);
   }
   @Post('login')
@@ -69,5 +68,14 @@ export class AuthController {
   @UseGuards(AuthGuard)
   profile(@Req() req: RequestWithUser) {
     return this.authService.profile(req.user.email, req.user.role);
+  }
+
+  @Patch('profile')
+  @UseGuards(AuthGuard)
+  updateProfile(
+    @Req() req: RequestWithUser,
+    @Body() updateProfileDto: UpdateProfileDto,
+  ) {
+    return this.authService.updateProfile(req.user.email, updateProfileDto);
   }
 }
