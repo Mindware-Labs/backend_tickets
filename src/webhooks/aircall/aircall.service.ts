@@ -2,7 +2,6 @@ import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import * as bcryptjs from 'bcryptjs';
-import { WebhookEvent } from '../../web-hook-event/entities/web-hook-event.entity';
 import {
   Ticket,
   TicketPriority,
@@ -32,8 +31,6 @@ export class AircallService {
   ]);
 
   constructor(
-    @InjectRepository(WebhookEvent)
-    private readonly webhookEventRepo: Repository<WebhookEvent>,
     @InjectRepository(Ticket)
     private readonly ticketRepo: Repository<Ticket>,
     @InjectRepository(Customer)
@@ -45,9 +42,7 @@ export class AircallService {
   ) {}
 
   /**
-   Processes an Aircall webhook:
-   Saves the event in webhook_events
-   Creates the ticket directly from the call
+   Processes an Aircall webhook and creates the ticket directly from the call
    */
   async ingest(payload: AircallWebhookDto): Promise<void> {
     this.logger.log(`Received webhook event: ${payload.event || 'UNKNOWN'}`);
@@ -57,32 +52,13 @@ export class AircallService {
       this.logger.warn('Webhook received without event type');
     }
 
-    const webhookEvent = this.webhookEventRepo.create({
-      provider: 'AIRCALL',
-      eventType: payload.event || 'UNKNOWN',
-      token: payload.token || '',
-      providerCallId: payload.data?.id?.toString(),
-      payload: payload as any,
-      status: 'RECEIVED',
-    });
-
-    await this.webhookEventRepo.save(webhookEvent);
-
     try {
       await this.processAircallWebhook(payload.data, payload.event);
-
-      webhookEvent.status = 'PROCESSED';
-      await this.webhookEventRepo.save(webhookEvent);
     } catch (error) {
       this.logger.error(
         `Error processing webhook: ${error.message}`,
         error.stack,
       );
-
-      webhookEvent.status = 'FAILED';
-      webhookEvent.error = error.message;
-      await this.webhookEventRepo.save(webhookEvent);
-
       throw error;
     }
   }

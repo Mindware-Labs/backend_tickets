@@ -19,5 +19,5 @@ export const typeOrmConfig = (
       ? false
       : { rejectUnauthorized: false },
   autoLoadEntities: true,
-  synchronize: true,
+  synchronize: false,
 });

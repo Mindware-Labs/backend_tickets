@@ -1,10 +1,10 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { ThrottlerModule } from '@nestjs/throttler';
 import * as path from 'path';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { WebHookEventModule } from './web-hook-event/web-hook-event.module';
 import { typeOrmConfig } from './config/typeorm.config';
 import { AircallModule } from './webhooks/aircall/aircall.module';
 import { CustomersModule } from './customers/customers.module';
@@ -35,7 +35,12 @@ import { AuthModule } from './auth/auth.module';
       useFactory: (configService: ConfigService) =>
         typeOrmConfig(configService),
     }),
-    WebHookEventModule,
+    ThrottlerModule.forRoot([
+      {
+        ttl: 60000, // 60 seconds
+        limit: 100, // 100 requests per TTL
+      },
+    ]),
     AircallModule,
     CustomersModule,
     AgentsModule,
