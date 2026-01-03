@@ -108,5 +108,5 @@ Write-Host ""
 Write-Host "Tests completed!" -ForegroundColor Cyan
 Write-Host ""
 Write-Host "To see saved data, query the database:" -ForegroundColor White
-Write-Host "   SELECT * FROM webhook_events ORDER BY receivedAt DESC LIMIT 5;" -ForegroundColor Gray
-Write-Host "   SELECT * FROM calls ORDER BY createdAt DESC LIMIT 5;" -ForegroundColor Gray
+Write-Host "   SELECT * FROM tickets WHERE aircallId IS NOT NULL ORDER BY createdAt DESC LIMIT 5;" -ForegroundColor Gray
+Write-Host "   SELECT * FROM customers ORDER BY createdAt DESC LIMIT 5;" -ForegroundColor Gray

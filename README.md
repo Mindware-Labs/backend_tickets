@@ -154,11 +154,11 @@ curl -X POST http://localhost:3000/webhooks/aircall \
 ## Verify Data
 
 ```sql
--- View received webhook events
-SELECT * FROM webhook_events ORDER BY "receivedAt" DESC LIMIT 10;
+-- View tickets created from webhooks
+SELECT * FROM tickets WHERE "aircallId" IS NOT NULL ORDER BY "createdAt" DESC LIMIT 10;
 
--- View logged calls
-SELECT * FROM calls ORDER BY "createdAt" DESC LIMIT 10;
+-- View customers
+SELECT * FROM customers ORDER BY "createdAt" DESC LIMIT 10;
 ```
 
 ## Run tests
