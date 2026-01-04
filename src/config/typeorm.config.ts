@@ -20,4 +20,7 @@ export const typeOrmConfig = (
       : { rejectUnauthorized: false },
   autoLoadEntities: true,
   synchronize: false,
+  extra: {
+    timezone: 'America/Santo_Domingo',
+  },
 });
