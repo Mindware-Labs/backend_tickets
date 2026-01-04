@@ -19,12 +19,6 @@ type DayBucket = {
 
 const STATUS_CLOSED = new Set(['CLOSED', 'RESOLVED']);
 
-const CAMPAIGN_LABELS: Record<string, string> = {
-  ONBOARDING: 'Onboarding',
-  AR: 'AR',
-  OTHER: 'Other',
-};
-
 const DISPOSITION_LABELS: Record<string, string> = {
   BOOKING: 'Booking',
   GENERAL_INFO: 'General Info',
@@ -63,6 +57,7 @@ export class ReportsService {
     const tickets = await this.ticketRepository
       .createQueryBuilder('ticket')
       .leftJoinAndSelect('ticket.assignedTo', 'agent')
+      .leftJoinAndSelect('ticket.campaign', 'campaign')
       .where('ticket.createdAt BETWEEN :start AND :end', {
         start: startDate.toISOString(),
         end: endDate.toISOString(),
@@ -82,7 +77,9 @@ export class ReportsService {
       .map((ticket) => ticket.duration || 0)
       .filter((value) => value > 0);
     const avgDurationSeconds = durations.length
-      ? Math.round(durations.reduce((sum, value) => sum + value, 0) / durations.length)
+      ? Math.round(
+          durations.reduce((sum, value) => sum + value, 0) / durations.length,
+        )
       : 0;
 
     const callsByDay = this.buildDailyBuckets(startDate, endDate, tickets);
@@ -94,7 +91,6 @@ export class ReportsService {
 
     const campaignBreakdown = this.buildBreakdown(
       tickets.map((ticket) => ticket.campaign?.nombre || 'UNSPECIFIED'),
-      CAMPAIGN_LABELS,
     );
 
     const statusBreakdown = this.buildBreakdown(
@@ -133,6 +129,7 @@ export class ReportsService {
     const tickets = await this.ticketRepository
       .createQueryBuilder('ticket')
       .leftJoinAndSelect('ticket.assignedTo', 'agent')
+      .leftJoinAndSelect('ticket.campaign', 'campaign')
       .where('ticket.createdAt BETWEEN :start AND :end', {
         start: startDate.toISOString(),
         end: endDate.toISOString(),
@@ -149,18 +146,22 @@ export class ReportsService {
       .map((ticket) => ticket.duration || 0)
       .filter((value) => value > 0);
     const avgDurationSeconds = durations.length
-      ? Math.round(durations.reduce((sum, value) => sum + value, 0) / durations.length)
+      ? Math.round(
+          durations.reduce((sum, value) => sum + value, 0) / durations.length,
+        )
       : 0;
 
     const agentPerformance = this.buildAgentPerformance(tickets);
 
     const topByVolume = agentPerformance[0] || null;
-    const topByResolution = [...agentPerformance].sort(
-      (a, b) => b.resolutionRate - a.resolutionRate,
-    )[0] || null;
-    const topByDuration = [...agentPerformance]
-      .filter((agent) => agent.avgDurationSeconds > 0)
-      .sort((a, b) => a.avgDurationSeconds - b.avgDurationSeconds)[0] || null;
+    const topByResolution =
+      [...agentPerformance].sort(
+        (a, b) => b.resolutionRate - a.resolutionRate,
+      )[0] || null;
+    const topByDuration =
+      [...agentPerformance]
+        .filter((agent) => agent.avgDurationSeconds > 0)
+        .sort((a, b) => a.avgDurationSeconds - b.avgDurationSeconds)[0] || null;
 
     return {
       period: {
@@ -252,7 +253,10 @@ export class ReportsService {
       label: string,
       value: string | number,
     ) => {
-      doc.rect(x + 2, y + 2, boxWidth, boxHeight).fillColor('#e5e7eb').fill();
+      doc
+        .rect(x + 2, y + 2, boxWidth, boxHeight)
+        .fillColor('#e5e7eb')
+        .fill();
       doc.rect(x, y, boxWidth, boxHeight).fillColor(white).fill();
       doc.rect(x, y, boxWidth, boxHeight).strokeColor('#e5e7eb').stroke();
       doc.rect(x, y, boxWidth, 3).fillColor(primaryColor).fill();
@@ -286,7 +290,11 @@ export class ReportsService {
     ) => {
       if (doc.y + 100 > doc.page.height) doc.addPage();
 
-      doc.fillColor(primaryColor).fontSize(14).font('Helvetica-Bold').text(titleText, 50, doc.y);
+      doc
+        .fillColor(primaryColor)
+        .fontSize(14)
+        .font('Helvetica-Bold')
+        .text(titleText, 50, doc.y);
       doc.moveDown(0.5);
 
       const startX = 50;
@@ -353,7 +361,10 @@ export class ReportsService {
     endDate: string,
     logoUrl?: string,
   ) {
-    const data = await this.getPerformanceReport({ start: startDate, end: endDate });
+    const data = await this.getPerformanceReport({
+      start: startDate,
+      end: endDate,
+    });
     const logoBuffer = await this.loadLogoBuffer(logoUrl);
 
     const summaryCards = [
@@ -410,7 +421,12 @@ export class ReportsService {
         columns: [
           { header: 'Agent', key: 'name', width: 200 },
           { header: 'Total', key: 'totalTickets', width: 80, align: 'center' },
-          { header: 'Closed', key: 'closedTickets', width: 80, align: 'center' },
+          {
+            header: 'Closed',
+            key: 'closedTickets',
+            width: 80,
+            align: 'center',
+          },
           {
             header: 'Avg Duration',
             key: 'avgDurationSeconds',
@@ -430,7 +446,13 @@ export class ReportsService {
     const subtitle = `${new Date(data.period.start).toLocaleDateString()} - ${new Date(
       data.period.end,
     ).toLocaleDateString()}`;
-    return this.buildPdf('PERFORMANCE REPORT', `RANGE: ${subtitle}`, summaryCards, tables, logoBuffer);
+    return this.buildPdf(
+      'PERFORMANCE REPORT',
+      `RANGE: ${subtitle}`,
+      summaryCards,
+      tables,
+      logoBuffer,
+    );
   }
 
   async getAgentsReportPdf(
@@ -462,7 +484,12 @@ export class ReportsService {
           { header: 'Agent', key: 'name', width: 200 },
           { header: 'Active', key: 'isActive', width: 80, align: 'center' },
           { header: 'Total', key: 'totalTickets', width: 80, align: 'center' },
-          { header: 'Closed', key: 'closedTickets', width: 80, align: 'center' },
+          {
+            header: 'Closed',
+            key: 'closedTickets',
+            width: 80,
+            align: 'center',
+          },
           { header: 'Open', key: 'openTickets', width: 80, align: 'center' },
           {
             header: 'Resolution',
@@ -490,7 +517,13 @@ export class ReportsService {
     const subtitle = `${new Date(data.period.start).toLocaleDateString()} - ${new Date(
       data.period.end,
     ).toLocaleDateString()}`;
-    return this.buildPdf('AGENTS REPORT', `RANGE: ${subtitle}`, summaryCards, tables, logoBuffer);
+    return this.buildPdf(
+      'AGENTS REPORT',
+      `RANGE: ${subtitle}`,
+      summaryCards,
+      tables,
+      logoBuffer,
+    );
   }
 
   private resolveDateRange(query: ReportQuery) {
@@ -509,8 +542,7 @@ export class ReportsService {
     }
 
     const period = query.period || '7d';
-    const days =
-      period === '30d' ? 30 : period === '90d' ? 90 : 7;
+    const days = period === '30d' ? 30 : period === '90d' ? 90 : 7;
     const startDate = new Date(endDate);
     startDate.setDate(endDate.getDate() - (days - 1));
     startDate.setHours(0, 0, 0, 0);
@@ -536,10 +568,13 @@ export class ReportsService {
       dateCursor.setDate(dateCursor.getDate() + 1);
     }
 
-    const indexByDate = buckets.reduce<Record<string, number>>((acc, bucket, index) => {
-      acc[bucket.date] = index;
-      return acc;
-    }, {});
+    const indexByDate = buckets.reduce<Record<string, number>>(
+      (acc, bucket, index) => {
+        acc[bucket.date] = index;
+        return acc;
+      },
+      {},
+    );
 
     tickets.forEach((ticket) => {
       const createdAt = ticket.createdAt ? new Date(ticket.createdAt) : null;
@@ -556,7 +591,10 @@ export class ReportsService {
     return buckets;
   }
 
-  private buildBreakdown(values: Array<string | null | undefined>, labels?: Record<string, string>) {
+  private buildBreakdown(
+    values: Array<string | null | undefined>,
+    labels?: Record<string, string>,
+  ) {
     const counts = values.reduce<Record<string, number>>((acc, value) => {
       const label = this.normalizeLabel(value || 'UNSPECIFIED', labels);
       acc[label] = (acc[label] || 0) + 1;
